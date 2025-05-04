@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Heart, ShoppingBag, Film, Search, Menu, X, Home, Settings, Upload, HeartPlus,FilesIcon } from 'lucide-react';
+import { Heart, ShoppingBag, Film, Search, Menu, X, Home, Settings, Upload, HeartPlus, FilesIcon } from 'lucide-react';
 
 export default function PetNavbar() {
   // Custom theme colors and fonts
@@ -61,9 +61,8 @@ export default function PetNavbar() {
     { name: 'Pet Dating', icon: <Heart className="w-6 h-6" />, href: '/home/pet-dating' },
     { name: 'Vet Listing', icon: <Search className="w-6 h-6" />, href: '/home/vets' },
     { name: 'Upload Reels', icon: <Upload className="w-6 h-6" />, href: '/home/reels-upload' },
-    { name: 'Adoption Upload Form', icon: <HeartPlus className="w-6 h-6" />, href: '/home/upload-ad',
-      name:'Lost Report', icon: <FilesIcon className="w-6 h-6" />, href: '/home/lost-report'
-     },
+    { name: 'Adoption Upload Form', icon: <HeartPlus className="w-6 h-6" />, href: '/home/upload-ad' },
+    { name: 'Lost Report', icon: <FilesIcon className="w-6 h-6" />, href: '/home/lost-report' }
   ];
 
   // Check if link is active - more precise matching
@@ -241,7 +240,8 @@ export default function PetNavbar() {
   return (
     <>
       {/* Show appropriate navbar based on screen size */}
-      {isMobile ? <MobileNav /> : <DesktopNav />}
+      {!isMobile && <DesktopNav />}
+      {isMobile && <MobileNav />}
       
       {/* Sidebar - shown on both mobile and desktop */}
       <Sidebar />
@@ -249,11 +249,8 @@ export default function PetNavbar() {
       {/* Dark overlay when sidebar is open */}
       <Overlay />
       
-      {/* Content spacing - adding padding ONLY where needed */}
-      <div style={{ 
-        paddingBottom: isMobile ? '4rem' : 0, 
-        paddingTop: !isMobile ? '4rem' : 0 
-      }} />
+      {/* Content spacing - FIXED: Only add padding when needed with no extra spacing */}
+      <div className={isMobile ? "pb-1.5" : "pt-16"} />
     </>
   );
 }

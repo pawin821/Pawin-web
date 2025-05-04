@@ -4,8 +4,7 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { CldUploadWidget } from 'next-cloudinary';
 import { Upload, Loader2, MapPin } from 'lucide-react';
-import { checkUserBadge, messaging, saveLostReport } from '../../../firebase/firebase';
-import { getToken } from "firebase/messaging";
+import { checkUserBadge, saveLostReport, sendBroadcastNotification } from '../../../firebase/firebase';
 
 import { useAuth } from "@clerk/nextjs";
 
@@ -31,25 +30,8 @@ export default function LostReportForm() {
   const [isUploading, setIsUploading] = useState(false);
   const [submitStatus, setSubmitStatus] = useState('');
   const [geoStatus, setGeoStatus] = useState('');
-  async function requestPermission() {
-    const permission = await Notification.requestPermission();
-    if (permission === "granted") {
-      // Generate Token
-      const token = await getToken(messaging, {
-        vapidKey:
-          "BGX1F5woV-7Quwi7c2vcxIDuOUsal88_UW4ygOOfHDwVMdqRAH-uCDrEBzUts1U0AN5oVJxxodtmmOSlJ4EOjvc",
-      });
-      console.log("Token Gen", token);
-      // Send this token  to server ( db)
-    } else if (permission === "denied") {
-      alert("You denied for the notification");
-    }
-  }
+  const [notificationStatus, setNotificationStatus] = useState('');
 
-  useEffect(() => {
-    // Req user for notification permission
-    requestPermission();
-  }, []);
   useEffect(() => {
     const fetchUserData = async () => {
       if (userId) {
@@ -153,8 +135,30 @@ export default function LostReportForm() {
     };
 
     try {
-      await saveLostReport(userId, lostData);
+      // Save the lost report
+      const reportId = await saveLostReport(userId, lostData);
       setSubmitStatus('success');
+      
+      // Send broadcast notification to all FCM tokens
+      try {
+        setNotificationStatus('sending');
+        const petType = formData.breed || 'pet';
+        const location = formData.lostAddress || 'unknown location';
+        const notificationData = {
+          title: `LOST PET ALERT: ${petType}`,
+          body: `A ${formData.color || ''} ${petType} was reported lost near ${location}. Can you help?`,
+          reportId: reportId,
+          imageUrl: formData.mediaFiles.length > 0 ? formData.mediaFiles[0].url : null
+        };
+        
+        await sendBroadcastNotification(notificationData);
+        setNotificationStatus('success');
+      } catch (notificationError) {
+        console.error("Error sending broadcast notification:", notificationError);
+        setNotificationStatus('error');
+      }
+      
+      // Reset form
       setFormData({
         breed: '',
         gender: '',
@@ -198,43 +202,42 @@ export default function LostReportForm() {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-     <InputField
-  label="Breed"
-  name="breed"
-  value={formData.breed}
-  onChange={handleInputChange}
-  required
-/>
-<InputField
-  label="Gender"
-  name="gender"
-  value={formData.gender}
-  onChange={handleInputChange}
-  required
-/>
-<InputField
-  label="Age"
-  name="age"
-  value={formData.age}
-  onChange={handleInputChange}
-  type="number"
-  required
-/>
-<InputField
-  label="Color"
-  name="color"
-  value={formData.color}
-  onChange={handleInputChange}
-  required
-/>
-<InputField
-  label="Lost Address"
-  name="lostAddress"
-  value={formData.lostAddress}
-  onChange={handleInputChange}
-  required
-/>
-
+              <InputField
+                label="Breed"
+                name="breed"
+                value={formData.breed}
+                onChange={handleInputChange}
+                required
+              />
+              <InputField
+                label="Gender"
+                name="gender"
+                value={formData.gender}
+                onChange={handleInputChange}
+                required
+              />
+              <InputField
+                label="Age"
+                name="age"
+                value={formData.age}
+                onChange={handleInputChange}
+                type="number"
+                required
+              />
+              <InputField
+                label="Color"
+                name="color"
+                value={formData.color}
+                onChange={handleInputChange}
+                required
+              />
+              <InputField
+                label="Lost Address"
+                name="lostAddress"
+                value={formData.lostAddress}
+                onChange={handleInputChange}
+                required
+              />
             </div>
             
             <div className="border p-4 rounded-md bg-gray-50">
@@ -342,6 +345,15 @@ export default function LostReportForm() {
             {submitStatus === 'success' && (
               <div className="mt-4 bg-green-100 border-l-4 border-green-500 p-4 rounded">
                 <p className="text-green-700">Report submitted successfully!</p>
+                {notificationStatus === 'sending' && (
+                  <p className="text-green-600 mt-1">Sending broadcast notifications...</p>
+                )}
+                {notificationStatus === 'success' && (
+                  <p className="text-green-600 mt-1">Alert sent to all nearby users!</p>
+                )}
+                {notificationStatus === 'error' && (
+                  <p className="text-orange-600 mt-1">Report saved but there was an issue sending notifications.</p>
+                )}
               </div>
             )}
             
@@ -357,12 +369,12 @@ export default function LostReportForm() {
   );
 }
 
-function InputField({ label, name, value, onChange }) {
+function InputField({ label, name, value, onChange, type = "text" }) {
   return (
     <div>
       <label className="block text-gray-700 text-sm font-medium mb-1">{label}</label>
       <input
-        type="text"
+        type={type}
         name={name}
         value={value}
         onChange={onChange}

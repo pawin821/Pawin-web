@@ -35,7 +35,6 @@ export default function LandingPage() {
         });
          await axios.post('/api/subscribe', { token });
         console.log("Token Gen", token);
-        // Send this token  to server ( db)
       } else if (permission === "denied") {
         alert("You denied for the notification");
       }

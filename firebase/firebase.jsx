@@ -4,6 +4,7 @@ import { getAnalytics } from "firebase/analytics";
 import { getFirestore, doc, addDoc ,setDoc,getDoc,collection,query,orderBy,getDocs,serverTimestamp,limit,updateDoc,arrayUnion,increment,arrayRemove,where } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
 import { getMessaging } from "firebase/messaging";
+import axios from "axios";
 
 
 function generateRandomHex(bytes = 32) {
@@ -1478,5 +1479,17 @@ export const sendLostPetNotification = async (petData) => {
   } catch (error) {
     console.error("Error sending lost pet notification:", error);
     throw error;
+  }
+};
+export  const sendBroadcastNotification = async (data) => {
+  try {
+    const response = await axios.post('https://www.pawin.co.in/api/broadcast', {
+      title: data.title,
+      body: data.body,
+    });
+
+    console.log('Response:', response.data);
+  } catch (error) {
+    console.error('Error sending notification:', error.response ? error.response.data : error.message);
   }
 };

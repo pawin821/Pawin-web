@@ -275,7 +275,7 @@ export default function PetRegistrationForm() {
                 We will verify your account and give you a badge.
               </p>
               <a
-                href="http://localhost:3000/home"
+                href="https://www.pawin.co.in/home"
                 className="inline-block px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
               >
                 Go to Home Page

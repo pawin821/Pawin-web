@@ -7,9 +7,9 @@ import {
   hasUserLikedVideo,
   addComment, 
   getVideoComments,
-
-
 } from '../../../firebase/firebase';
+
+import { Video, Comment } from '../../types';
 
 import { BiHeart, BiSolidHeart, BiComment, BiShare, BiPause, BiPlay } from 'react-icons/bi';
 import { FiX } from 'react-icons/fi';
@@ -17,32 +17,35 @@ import { toast } from 'react-hot-toast';
 import { useAuth } from "@clerk/nextjs";
 import { useUser } from "@clerk/nextjs";
 
+interface VideoPlayerProps {
+  userId?: string | null;
+}
 
-const VideoPlayer = ({ userId = null }) => {
-      const  {user}  = useUser();
-  const [videos, setVideos] = useState([]);
+const VideoPlayer: React.FC<VideoPlayerProps> = ({ userId = null }) => {
+  const { user } = useUser();
+  const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [showComments, setShowComments] = useState(false);
-  const [comments, setComments] = useState([]);
+  const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [isLiked, setIsLiked] = useState(false);
   const [loadingLike, setLoadingLike] = useState(false);
   const [loadingComment, setLoadingComment] = useState(false);
 
-  const videoRefs = useRef([]);
-  const observer = useRef(null);
-  const commentsRef = useRef(null);
+  const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
+  const observer = useRef<IntersectionObserver | null>(null);
+  const commentsRef = useRef<HTMLDivElement | null>(null);
   const { userId: uid, isSignedIn } = useAuth();
-
 
   // Fetch videos on component mount
   useEffect(() => {
     const fetchVideos = async () => {
       try {
-        const fetchedVideos = await getUserVideos(userId);
-        setVideos(fetchedVideos);
+        const fetchedVideos = await getUserVideos();
+        // Handle potential null response or convert Object to array if needed
+        setVideos(Array.isArray(fetchedVideos) ? fetchedVideos : (fetchedVideos ? [fetchedVideos] : []));
         setLoading(false);
       } catch (error) {
         console.error("Error fetching videos:", error);
@@ -55,27 +58,27 @@ const VideoPlayer = ({ userId = null }) => {
   }, [userId]);
 
   // Check if current user has liked the current video
-useEffect(() => {
-  const checkLikeStatus = async () => {
-    if (videos.length === 0 || !isSignedIn) return;
-    
-    const currentVideo = videos[currentVideoIndex];
-    try {
-      const liked = await hasUserLikedVideo(currentVideo.id,uid);
-      setIsLiked(liked);
-      console.log(liked);
-    } catch (error) {
-      console.error("Error checking like status:", error);
-    }
-  };
+  useEffect(() => {
+    const checkLikeStatus = async () => {
+      if (videos.length === 0 || !isSignedIn) return;
+      
+      const currentVideo = videos[currentVideoIndex];
+      try {
+        const liked = await hasUserLikedVideo(currentVideo.id, uid);
+        setIsLiked(liked);
+        console.log(liked);
+      } catch (error) {
+        console.error("Error checking like status:", error);
+      }
+    };
 
-  checkLikeStatus();
-  
-  // The effect cleanup function should return a non-promise value
-  return () => {
-    // Any cleanup code if needed
-  };
-}, [videos, currentVideoIndex, isSignedIn, hasUserLikedVideo]);
+    checkLikeStatus();
+    
+    // The effect cleanup function should return a non-promise value
+    return () => {
+      // Any cleanup code if needed
+    };
+  }, [videos, currentVideoIndex, isSignedIn, uid]);
   
 
   // Set up Intersection Observer for video playing
@@ -96,7 +99,7 @@ useEffect(() => {
           // Pause when video is not visible
           const videoIndex = videoRefs.current.findIndex(ref => ref === entry.target);
           if (videoIndex !== -1 && videoRefs.current[videoIndex]) {
-            videoRefs.current[videoIndex].pause();
+            videoRefs.current[videoIndex]?.pause();
           }
         }
       });
@@ -107,7 +110,7 @@ useEffect(() => {
     // Observe all video elements
     if (videos.length > 0 && videoRefs.current.length > 0) {
       videoRefs.current.forEach(ref => {
-        if (ref) observer.current.observe(ref);
+        if (ref) observer.current?.observe(ref);
       });
     }
 
@@ -123,16 +126,18 @@ useEffect(() => {
     if (!videoRefs.current[currentVideoIndex]) return;
 
     if (isPlaying) {
-      videoRefs.current[currentVideoIndex].pause();
+      videoRefs.current[currentVideoIndex]?.pause();
       setIsPlaying(false);
     } else {
-      videoRefs.current[currentVideoIndex].play();
+      videoRefs.current[currentVideoIndex]?.play().catch(err => {
+        console.error("Error playing video:", err);
+      });
       setIsPlaying(true);
     }
   };
 
   // Play specific video
-  const handlePlay = (index) => {
+  const handlePlay = (index: number) => {
     if (!videoRefs.current[index]) return;
 
     // Pause all videos first
@@ -143,7 +148,7 @@ useEffect(() => {
     });
 
     // Play the current video
-    videoRefs.current[index].play().then(() => {
+    videoRefs.current[index]?.play().then(() => {
       setIsPlaying(true);
     }).catch(err => {
       console.error("Error playing video:", err);
@@ -153,19 +158,18 @@ useEffect(() => {
 
   // Handle like/unlike
   const handleLike = async () => {
+    if (!uid) {
+      toast.error("Please log in to like videos");
+      return;
+    }
 
-    // if (!uid) {
-    //   toast.error("Please log in to like videos");
-    //   return;
-    // }
-
-    // if (loadingLike) return;
+    if (loadingLike) return;
 
     const currentVideo = videos[currentVideoIndex];
     setLoadingLike(true);
 
     try {
-      const likeStatus = await likeVideo(currentVideo.id,uid);
+      const likeStatus = await likeVideo(currentVideo.id, uid);
       setIsLiked(likeStatus);
       
       // Update like count in local state
@@ -174,8 +178,8 @@ useEffect(() => {
         updatedVideos[currentVideoIndex] = {
           ...updatedVideos[currentVideoIndex],
           likeCount: likeStatus 
-            ? updatedVideos[currentVideoIndex].likeCount + 1
-            : updatedVideos[currentVideoIndex].likeCount - 1
+            ? (updatedVideos[currentVideoIndex].likeCount || 0) + 1
+            : Math.max((updatedVideos[currentVideoIndex].likeCount || 0) - 1, 0)
         };
         return updatedVideos;
       });
@@ -211,7 +215,7 @@ useEffect(() => {
   };
 
   // Handle comment submission
-  const handleCommentSubmit = async (e) => {
+  const handleCommentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!isSignedIn) {
@@ -225,7 +229,7 @@ useEffect(() => {
     setLoadingComment(true);
     
     try {
-      await addComment(currentVideo.id, { text: newComment.trim() },uid,user);
+      await addComment(currentVideo.id, { text: newComment.trim() }, uid, user);
       setNewComment('');
       
       // Update local comment count
@@ -233,7 +237,7 @@ useEffect(() => {
         const updatedVideos = [...prevVideos];
         updatedVideos[currentVideoIndex] = {
           ...updatedVideos[currentVideoIndex],
-          commentCount: updatedVideos[currentVideoIndex].commentCount + 1
+          commentCount: (updatedVideos[currentVideoIndex].commentCount || 0) + 1
         };
         return updatedVideos;
       });
@@ -279,8 +283,8 @@ useEffect(() => {
 
   // Scroll to next video
   const scrollToNextVideo = () => {
-    if (currentVideoIndex < videos.length - 1) {
-      videoRefs.current[currentVideoIndex + 1].scrollIntoView({ 
+    if (currentVideoIndex < videos.length - 1 && videoRefs.current[currentVideoIndex + 1]) {
+      videoRefs.current[currentVideoIndex + 1]?.scrollIntoView({ 
         behavior: 'smooth' 
       });
     }
@@ -288,8 +292,8 @@ useEffect(() => {
 
   // Scroll to previous video
   const scrollToPrevVideo = () => {
-    if (currentVideoIndex > 0) {
-      videoRefs.current[currentVideoIndex - 1].scrollIntoView({ 
+    if (currentVideoIndex > 0 && videoRefs.current[currentVideoIndex - 1]) {
+      videoRefs.current[currentVideoIndex - 1]?.scrollIntoView({ 
         behavior: 'smooth' 
       });
     }
@@ -321,8 +325,10 @@ useEffect(() => {
             className="h-full w-full snap-start relative"
           >
             <video
-              ref={el => videoRefs.current[index] = el}
-              src={video.video.url}
+              ref={(el) => {
+                if (el) videoRefs.current[index] = el;
+              }}
+              src={video.video?.url}
               className="h-full w-full object-contain"
               loop
               playsInline
@@ -338,7 +344,7 @@ useEffect(() => {
               
               {video.tags && video.tags.length > 0 && (
                 <div className="flex flex-wrap gap-1 mt-1">
-                  {video.tags.map((tag, idx) => (
+                  {video.tags.map((tag: string, idx: number) => (
                     <span key={idx} className="bg-white/20 text-white text-xs px-2 py-1 rounded-full">
                       {tag}
                     </span>
@@ -411,12 +417,12 @@ useEffect(() => {
                 <p className="text-sm text-gray-400">Be the first to comment</p>
               </div>
             ) : (
-              comments.map(comment => (
+              comments.map((comment: Comment) => (
                 <div key={comment.id} className="mb-4 pb-4 border-b">
                   <div className="flex items-start">
                     <div className="w-10 h-10 rounded-full bg-gray-300 overflow-hidden mr-3">
                       {comment.photoURL ? (
-                        <img src={comment.photoURL} alt={comment.displayName} className="w-full h-full object-cover" />
+                        <img src={comment.photoURL} alt={comment.displayName || 'User'} className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center bg-blue-500 text-white">
                           {comment.displayName ? comment.displayName.charAt(0).toUpperCase() : 'A'}
@@ -456,7 +462,7 @@ useEffect(() => {
               <button 
                 type="submit"
                 className="bg-blue-500 text-white rounded-full py-2 px-6 font-medium"
-                disabled={!newComment.trim() || !isSignedIn|| loadingComment}
+                disabled={!newComment.trim() || !isSignedIn || loadingComment}
               >
                 {loadingComment ? 'Posting...' : 'Post'}
               </button>

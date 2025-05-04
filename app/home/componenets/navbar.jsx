@@ -4,9 +4,8 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Heart, ShoppingBag, Film,Dog, Search, Menu, X, Home, Settings, Upload, HeartPlus, FilesIcon } from 'lucide-react';
+import { Heart, ShoppingBag, Film, Dog, Search, Menu, X, Home, Settings, Upload, HeartPlus, FilesIcon } from 'lucide-react';
 import { UserButton } from '@clerk/nextjs';
-import { ico } from '@cloudinary/url-gen/qualifiers/format';
 
 export default function PetNavbar() {
   // Custom theme colors and fonts
@@ -53,23 +52,19 @@ export default function PetNavbar() {
   const mainNavItems = [
     { name: 'Buy', icon: <Home className="w-6 h-6" />, href: '/home' },
     { name: 'Adoption', icon: <Heart className="w-6 h-6" />, href: '/home/adoption' },
-   { name: 'Pet Dating', icon: <Heart className="w-6 h-6" />, href: '/home/pet-dating' },
-
+    { name: 'Pet Dating', icon: <Heart className="w-6 h-6" />, href: '/home/pet-dating' },
     { name: 'Reels', icon: <Film className="w-6 h-6" />, href: '/home/reels' },
   ];
 
-  // Additional sidebar items
+  // Additional sidebar items - FIXED: Properly formatted with commas and braces
   const sideNavItems = [
-   { name: 'Lost', icon: <Search className="w-6 h-6" />, href: '/home/lost' },
-
+    { name: 'Lost', icon: <Search className="w-6 h-6" />, href: '/home/lost' },
     { name: 'Selling', icon: <ShoppingBag className="w-6 h-6" />, href: '/home/selling' },
     { name: 'Vet Listing', icon: <Search className="w-6 h-6" />, href: '/home/vets' },
     { name: 'Upload Reels', icon: <Upload className="w-6 h-6" />, href: '/home/reels-upload' },
     { name: 'Adoption Upload Form', icon: <HeartPlus className="w-6 h-6" />, href: '/home/upload-ad' },
-    { name: 'Lost Report', icon: <FilesIcon className="w-6 h-6" />, href: '/home/lost-report',
-      name:'My Puppies',icon:<Dog className='w-6 h-6'/>,href:'/home/orders'
-  }
-     
+    { name: 'Lost Report', icon: <FilesIcon className="w-6 h-6" />, href: '/home/lost-report' },
+    { name: 'My Puppies', icon: <Dog className='w-6 h-6' />, href: '/home/orders' }
   ];
 
   // Check if link is active - more precise matching
@@ -103,7 +98,7 @@ export default function PetNavbar() {
       </div>
       
       <div className="p-4">
-        <div className="space-y-2">
+        <div className="space-y-3">
           {sideNavItems.map((item, index) => {
             const active = isActive(item.href);
             return (
@@ -125,10 +120,10 @@ export default function PetNavbar() {
               </Link>
             );
           })}
-    <div className="flex items-center gap-2 p-2">
-      <UserButton afterSignOutUrl="/" />
-      <span className="text-sm font-medium text-gray-700">Settings</span>
-    </div>
+          <div className="flex items-center gap-2  px-3 py-1">
+            <UserButton afterSignOutUrl="/" />
+            <span className="text-sm font-medium text-gray-700">Settings</span>
+          </div>
         </div>
       </div>
     </div>

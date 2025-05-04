@@ -101,7 +101,7 @@ const PurchasedPetsPage = () => {
                 <div className="flex justify-between items-start mb-2">
                   <h2 className="text-xl font-semibold text-gray-800">{pet.breed}</h2>
                   <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">
-                    ${Number(pet.cost).toLocaleString()}
+                    ₹{Number(pet.cost).toLocaleString()}
                   </span>
                 </div>
                 

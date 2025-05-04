@@ -1493,3 +1493,40 @@ export  const sendBroadcastNotification = async (data) => {
     console.error('Error sending notification:', error.response ? error.response.data : error.message);
   }
 };
+export const saveDonation = async (donationId, donationData) => {
+  try {
+    const donationToSave = { ...donationData, id: donationId };
+
+    // Add timestamp
+    donationToSave.createdAt = new Date().toISOString();
+
+    // Add donor location if available
+    if (donationData.location) {
+      donationToSave.location = donationData.location;
+    }
+
+    const donationRef = doc(db, 'donations', donationId);
+    await setDoc(donationRef, donationToSave);
+
+    return donationId;
+  } catch (error) {
+    console.error('Error saving donation:', error);
+    throw error;
+  }
+};
+export const getAllDonations = async () => {
+  try {
+    const donationsCollectionRef = collection(db, 'donations');
+    const querySnapshot = await getDocs(donationsCollectionRef);
+
+    const donations = querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    return donations;
+  } catch (error) {
+    console.error('Error fetching donations:', error);
+    throw error;
+  }
+};

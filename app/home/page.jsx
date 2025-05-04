@@ -352,7 +352,7 @@ export default function PetMarketplace() {
                   <div className="space-y-2 mb-4">
                     <div className="flex items-center text-gray-600">
                       <Calendar className="h-4 w-4 mr-2 text-indigo-500" />
-                      <span className="text-sm">{pet.age} • {pet.gender}</span>
+                      <span className="text-sm">{pet.age} Years • {pet.gender}</span>
                     </div>
                     
                     <div className="flex items-center text-gray-600">
@@ -360,13 +360,7 @@ export default function PetMarketplace() {
                       <span className="text-sm">{pet.location}</span>
                     </div>
                     
-                    {/* Show color if available */}
-                    {pet.color && (
-                      <div className="flex items-center text-gray-600">
-                        <div className="h-4 w-4 mr-2 rounded-full bg-indigo-500"></div>
-                        <span className="text-sm">{pet.color}</span>
-                      </div>
-                    )}
+               
                   </div>
                   
                   {/* Bottom section with price and action button */}

@@ -4,7 +4,9 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Heart, ShoppingBag, Film, Search, Menu, X, Home, Settings, Upload, HeartPlus, FilesIcon } from 'lucide-react';
+import { Heart, ShoppingBag, Film,Dog, Search, Menu, X, Home, Settings, Upload, HeartPlus, FilesIcon } from 'lucide-react';
+import { UserButton } from '@clerk/nextjs';
+import { ico } from '@cloudinary/url-gen/qualifiers/format';
 
 export default function PetNavbar() {
   // Custom theme colors and fonts
@@ -51,18 +53,23 @@ export default function PetNavbar() {
   const mainNavItems = [
     { name: 'Buy', icon: <Home className="w-6 h-6" />, href: '/home' },
     { name: 'Adoption', icon: <Heart className="w-6 h-6" />, href: '/home/adoption' },
+   { name: 'Pet Dating', icon: <Heart className="w-6 h-6" />, href: '/home/pet-dating' },
+
     { name: 'Reels', icon: <Film className="w-6 h-6" />, href: '/home/reels' },
-    { name: 'Lost', icon: <Search className="w-6 h-6" />, href: '/home/lost' },
   ];
 
   // Additional sidebar items
   const sideNavItems = [
+   { name: 'Lost', icon: <Search className="w-6 h-6" />, href: '/home/lost' },
+
     { name: 'Selling', icon: <ShoppingBag className="w-6 h-6" />, href: '/home/selling' },
-    { name: 'Pet Dating', icon: <Heart className="w-6 h-6" />, href: '/home/pet-dating' },
     { name: 'Vet Listing', icon: <Search className="w-6 h-6" />, href: '/home/vets' },
     { name: 'Upload Reels', icon: <Upload className="w-6 h-6" />, href: '/home/reels-upload' },
     { name: 'Adoption Upload Form', icon: <HeartPlus className="w-6 h-6" />, href: '/home/upload-ad' },
-    { name: 'Lost Report', icon: <FilesIcon className="w-6 h-6" />, href: '/home/lost-report' }
+    { name: 'Lost Report', icon: <FilesIcon className="w-6 h-6" />, href: '/home/lost-report',
+      name:'My Puppies',icon:<Dog className='w-6 h-6'/>,href:'/home/orders'
+  }
+     
   ];
 
   // Check if link is active - more precise matching
@@ -118,6 +125,10 @@ export default function PetNavbar() {
               </Link>
             );
           })}
+    <div className="flex items-center gap-2 p-2">
+      <UserButton afterSignOutUrl="/" />
+      <span className="text-sm font-medium text-gray-700">Settings</span>
+    </div>
         </div>
       </div>
     </div>
@@ -250,7 +261,7 @@ export default function PetNavbar() {
       <Overlay />
       
       {/* Content spacing - FIXED: Only add padding when needed with no extra spacing */}
-      <div className={isMobile ? "pb-1.5" : "pt-16"} />
+      <div className={isMobile ? "pb-0" : "pt-16"} />
     </>
   );
 }

@@ -1,5 +1,5 @@
 "use client"
-import { useState } from 'react';
+import { useState,useEffect } from 'react';
 import { Heart, Search, MapPin, Video, PawPrint, Calendar, DollarSign, 
          MessageCircle, Star, Users, Briefcase, User, AlertTriangle } from 'lucide-react';
 import { Stethoscope } from "lucide-react";

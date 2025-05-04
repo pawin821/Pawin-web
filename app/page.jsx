@@ -5,6 +5,7 @@ import { Heart, Search, MapPin, Video, PawPrint, Calendar, DollarSign,
 import { Stethoscope } from "lucide-react";
 import { getToken } from "firebase/messaging";
 import { messaging } from '@/firebase/firebase';
+import axios from 'axios';
 
 // Adding custom font styles and colors as per requirements
 const styles = {
@@ -32,6 +33,7 @@ export default function LandingPage() {
           vapidKey:
             "BGX1F5woV-7Quwi7c2vcxIDuOUsal88_UW4ygOOfHDwVMdqRAH-uCDrEBzUts1U0AN5oVJxxodtmmOSlJ4EOjvc",
         });
+         await axios.post('/api/subscribe', { token });
         console.log("Token Gen", token);
         // Send this token  to server ( db)
       } else if (permission === "denied") {

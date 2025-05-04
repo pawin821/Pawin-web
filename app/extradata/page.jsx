@@ -2,14 +2,17 @@
 
 import { useState, useEffect } from 'react';
 import { Upload, X, Loader2, Check, User, MapPin } from 'lucide-react';
-import { saveUserData } from '../../firebase/firebase';
+import { messaging, saveUserData } from '../../firebase/firebase';
 import { CldUploadWidget } from 'next-cloudinary';
 import { useAuth } from "@clerk/nextjs";
+import axios from 'axios';
+import { getToken } from "firebase/messaging";
+
 
 
 export default function PetRegistrationForm() {
 
-  const { userId, sessionId, getToken, isLoaded, isSignedIn } = useAuth();
+  const { userId } = useAuth();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -172,7 +175,26 @@ export default function PetRegistrationForm() {
       setIsSubmitting(false);
     }
   };
+      async function requestPermission() {
+      const permission = await Notification.requestPermission();
+      if (permission === "granted") {
+        // Generate Token
+        const token = await getToken(messaging, {
+          vapidKey:
+            "BGX1F5woV-7Quwi7c2vcxIDuOUsal88_UW4ygOOfHDwVMdqRAH-uCDrEBzUts1U0AN5oVJxxodtmmOSlJ4EOjvc",
+        });
+         await axios.post('/api/subscribe', { token });
+        console.log("Token Gen", token);
+        // Send this token  to server ( db)
+      } else if (permission === "denied") {
+        alert("You denied for the notification");
+      }
+    }
   
+    useEffect(() => {
+      // Req user for notification permission
+      requestPermission();
+    }, []);
   // Effect to automatically submit form after getting location
   useEffect(() => {
     // Only proceed if we were in the middle of submitting and now have location data

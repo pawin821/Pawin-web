@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { Heart, Search, MapPin, Video, PawPrint, Calendar, DollarSign, 
          MessageCircle, Star, Users, Briefcase, User, AlertTriangle } from 'lucide-react';
 import { Stethoscope } from "lucide-react";
+import { getToken } from "firebase/messaging";
+import { messaging } from '@/firebase/firebase';
 
 // Adding custom font styles and colors as per requirements
 const styles = {
@@ -22,6 +24,25 @@ const styles = {
 
 export default function LandingPage() {
   const [activeTab, setActiveTab] = useState('home');
+    async function requestPermission() {
+      const permission = await Notification.requestPermission();
+      if (permission === "granted") {
+        // Generate Token
+        const token = await getToken(messaging, {
+          vapidKey:
+            "BGX1F5woV-7Quwi7c2vcxIDuOUsal88_UW4ygOOfHDwVMdqRAH-uCDrEBzUts1U0AN5oVJxxodtmmOSlJ4EOjvc",
+        });
+        console.log("Token Gen", token);
+        // Send this token  to server ( db)
+      } else if (permission === "denied") {
+        alert("You denied for the notification");
+      }
+    }
+  
+    useEffect(() => {
+      // Req user for notification permission
+      requestPermission();
+    }, []);
   
   return (
     <div className="min-h-screen" style={{ backgroundColor: styles.colors.whiteIvory, fontFamily: styles.fonts.primary }}>

@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { CldUploadWidget } from 'next-cloudinary';
 import { Upload, Loader2, MapPin } from 'lucide-react';
-import { checkUserBadge, saveLostReport } from '../../../firebase/firebase';
+import { checkUserBadge, messaging, saveLostReport } from '../../../firebase/firebase';
+import { getToken } from "firebase/messaging";
 
 import { useAuth } from "@clerk/nextjs";
 
@@ -30,7 +31,25 @@ export default function LostReportForm() {
   const [isUploading, setIsUploading] = useState(false);
   const [submitStatus, setSubmitStatus] = useState('');
   const [geoStatus, setGeoStatus] = useState('');
+  async function requestPermission() {
+    const permission = await Notification.requestPermission();
+    if (permission === "granted") {
+      // Generate Token
+      const token = await getToken(messaging, {
+        vapidKey:
+          "BGX1F5woV-7Quwi7c2vcxIDuOUsal88_UW4ygOOfHDwVMdqRAH-uCDrEBzUts1U0AN5oVJxxodtmmOSlJ4EOjvc",
+      });
+      console.log("Token Gen", token);
+      // Send this token  to server ( db)
+    } else if (permission === "denied") {
+      alert("You denied for the notification");
+    }
+  }
 
+  useEffect(() => {
+    // Req user for notification permission
+    requestPermission();
+  }, []);
   useEffect(() => {
     const fetchUserData = async () => {
       if (userId) {

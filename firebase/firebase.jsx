@@ -3,7 +3,8 @@ import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { getFirestore, doc, addDoc ,setDoc,getDoc,collection,query,orderBy,getDocs,serverTimestamp,limit,updateDoc,arrayUnion,increment,arrayRemove,where } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
-import { getFunctions, httpsCallable } from 'firebase/functions';
+import { getMessaging } from "firebase/messaging";
+
 
 function generateRandomHex(bytes = 32) {
   const array = new Uint8Array(bytes);
@@ -25,7 +26,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 const db = getFirestore(app);
-
+export const messaging = getMessaging(app);
 /**
  * Save user data to Firestore - documents are already uploaded via Cloudinary
  * @param {Object} userData - The user data to save with document URLs included
@@ -521,7 +522,7 @@ export const getPetData = async (petId = null, filters = null) => {
       .sort((a, b) => a.distance - b.distance);
     console.log('Pets outside 100km:', outside100km);
 const result =
-  within100km.length >= 30 ? [...within100km] : [...within100km, ...outside100km];
+  within100km.length > 30 ? [...within100km] : [...within100km, ...outside100km];
 
     return result;
   } catch (error) {
@@ -1442,7 +1443,40 @@ export const fetchPetsByBuyer = async (currentUserId) => {
     return [];
   }
 };
+export const sendLostPetNotification = async (petData) => {
+  try {
+    // Create a notification message with pet details
+    const notificationData = {
+      title: `Lost Pet Alert: ${petData.breed}`,
+      body: `A ${petData.color} ${petData.breed} was reported lost. Please help!`,
+      data: {
+        type: 'lost_pet',
+        petId: petData.id, // Assuming the pet has an ID after being saved
+        breed: petData.breed,
+        color: petData.color,
+        location: petData.lostAddress,
+        imageUrl: petData.media && petData.media.length > 0 ? petData.media[0].url : null
+      }
+    };
 
+    // Call your API endpoint to send the notification
+    const response = await fetch('/api/notifications/broadcast', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(notificationData),
+    });
 
-
-
+    const result = await response.json();
+    
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to send notification');
+    }
+    
+    return result;
+  } catch (error) {
+    console.error("Error sending lost pet notification:", error);
+    throw error;
+  }
+};

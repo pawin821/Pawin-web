@@ -3,7 +3,7 @@ import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { getFirestore, doc, addDoc ,setDoc,getDoc,collection,query,orderBy,getDocs,serverTimestamp,limit,updateDoc,arrayUnion,increment,arrayRemove,where } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
-
+import { getFunctions, httpsCallable } from 'firebase/functions';
 
 function generateRandomHex(bytes = 32) {
   const array = new Uint8Array(bytes);
@@ -1442,3 +1442,163 @@ export const fetchPetsByBuyer = async (currentUserId) => {
     return [];
   }
 };
+
+
+
+export const  sendNotificationToAllUsers = async (notificationData) => {
+  try {
+    const db = getFirestore();
+    
+    // OneSignal API credentials hardcoded
+    const ONE_SIGNAL_APP_ID = "qlmtwrj5aezuv2yzo5xmlslo6";
+    const ONE_SIGNAL_API_KEY = "os_v2_app_3ydmzf3guzas3pqqyl4652ocmqqlmtwrj5aezuv2yzo5xmlslo6pw7nwllnz3z5cvuisz5nk6fw4gseviyc3pmjqpy2loovmxugvk2y"; // Replace with your actual API key
+    
+    // Maximum distance in kilometers
+    const MAX_DISTANCE_KM = 100;
+    
+    // 1. Get the current device location using browser's Geolocation API
+    const getCurrentLocation = () => {
+      return new Promise((resolve, reject) => {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              resolve({
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude
+              });
+            },
+            (error) => {
+              console.error("Error getting current location:", error);
+              reject(error);
+            },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+          );
+        } else {
+          reject(new Error("Geolocation is not supported by this browser."));
+        }
+      });
+    };
+    
+    // Get current location where the pet was reported lost
+    let currentLocation;
+    try {
+      currentLocation = await getCurrentLocation();
+      console.log("Current location retrieved:", currentLocation);
+    } catch (locationError) {
+      // Fall back to the location provided in notificationData if available
+      if (notificationData.latitude && notificationData.longitude) {
+        currentLocation = {
+          latitude: notificationData.latitude,
+          longitude: notificationData.longitude
+        };
+        console.log("Using provided location:", currentLocation);
+      } else {
+        console.error("Failed to get location and no fallback available");
+        return { success: false, error: "Unable to determine location" };
+      }
+    }
+    
+    // 2. Get all users with their OneSignal player IDs from the database
+    const usersRef = collection(db, "users");
+    const usersSnapshot = await getDocs(usersRef);
+    const eligibleUsers = [];
+    
+    // Function to calculate distance between two points using Haversine formula
+    const calculateDistance = (lat1, lon1, lat2, lon2) => {
+      const R = 6371; // Earth's radius in kilometers
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = 
+        Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+        Math.sin(dLon/2) * Math.sin(dLon/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      const distance = R * c; // Distance in kilometers
+      return distance;
+    };
+    
+    // Filter users by distance and collect player IDs
+    usersSnapshot.forEach((doc) => {
+      const userData = doc.data();
+      
+   
+      // If user has location data, calculate distance
+      if (userData.latitude && userData.longitude) {
+        const distance = calculateDistance(
+          userData.latitude, 
+          userData.longitude, 
+          currentLocation.latitude, 
+          currentLocation.longitude
+        );
+        
+        // Add user if within range
+        if (distance <= MAX_DISTANCE_KM) {
+          eligibleUsers.push({
+            playerId: userData.oneSignalPlayerId,
+            distance: distance.toFixed(1), // Round to 1 decimal place
+            userId: doc.id
+          });
+        }
+      } else {
+        // For users without location data, we can optionally include them
+        // Uncomment the next line if you want to include users without location data
+        // eligibleUsers.push({ playerId: userData.oneSignalPlayerId, userId: doc.id, distance: "unknown" });
+      }
+    });
+    
+    // No eligible users found
+    if (eligibleUsers.length === 0) {
+      console.log("No users within 100km range found");
+      return { success: true, sentCount: 0 };
+    }
+    
+    // Get just the player IDs for notification
+    const playerIds = eligibleUsers.map(user => user.playerId);
+    
+    console.log(`Sending notifications to ${playerIds.length} users within 100km`);
+    
+    // 3. Send notification using OneSignal REST API with the exact format provided
+    const response = await fetch('https://api.onesignal.com/notifications?c=push', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Key ${ONE_SIGNAL_API_KEY}`,
+        'accept': 'application/json',
+        'content-type': 'application/json'
+      },
+      body: JSON.stringify({
+        app_id: ONE_SIGNAL_APP_ID,
+        contents: {
+          en: notificationData.body
+        },
+        headings: {
+          en: notificationData.title
+        },
+        include_player_ids: playerIds, // Using specific player IDs instead of segments
+        data: {
+          reportId: notificationData.reportId,
+          type: 'lost_pet',
+          reportLocation: currentLocation
+        },
+        big_picture: notificationData.imageUrl || undefined,  // For Android
+        ios_attachments: notificationData.imageUrl ? { id1: notificationData.imageUrl } : undefined, // For iOS
+        web_url: notificationData.webUrl || undefined,
+        app_url: notificationData.appUrl || undefined
+      })
+    });
+    
+    const result = await response.json();
+    
+    // 4. Return success with stats
+    return {
+      success: result.id ? true : false,
+      sentCount: playerIds.length,
+      notificationId: result.id,
+      usersWithinRange: eligibleUsers.length,
+      reportLocation: currentLocation
+    };
+    
+  } catch (error) {
+    console.error("Error sending proximity-based notifications:", error);
+    throw error;
+  }
+}

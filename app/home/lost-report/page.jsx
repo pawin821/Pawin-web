@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { CldUploadWidget } from 'next-cloudinary';
-import { Upload, Loader2, MapPin, Bell } from 'lucide-react';
-import { checkUserBadge, saveLostReport, sendNotificationToAllUsers } from '../../../firebase/firebase';
+import { Upload, Loader2, MapPin } from 'lucide-react';
+import { checkUserBadge, saveLostReport } from '../../../firebase/firebase';
 
 import { useAuth } from "@clerk/nextjs";
 
@@ -30,7 +30,6 @@ export default function LostReportForm() {
   const [isUploading, setIsUploading] = useState(false);
   const [submitStatus, setSubmitStatus] = useState('');
   const [geoStatus, setGeoStatus] = useState('');
-  const [notificationStatus, setNotificationStatus] = useState('');
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -135,30 +134,8 @@ export default function LostReportForm() {
     };
 
     try {
-      // Save the lost report
-      const reportId = await saveLostReport(userId, lostData);
+      await saveLostReport(userId, lostData);
       setSubmitStatus('success');
-      
-      // Send notification to all users
-      setNotificationStatus('sending');
-      const notificationData = {
-        title: `Lost Pet Alert: ${formData.breed}`,
-        body: `A ${formData.color} ${formData.breed} was reported lost near ${formData.lostAddress}. Can you help?`,
-        reportId: reportId,
-        petInfo: {
-          breed: formData.breed,
-          color: formData.color,
-          age: formData.age,
-          gender: formData.gender
-        },
-        imageUrl: formData.mediaFiles.length > 0 ? formData.mediaFiles[0].url : null,
-        timestamp: new Date()
-      };
-      
-      await sendNotificationToAllUsers(notificationData);
-      setNotificationStatus('success');
-      
-      // Reset form
       setFormData({
         breed: '',
         gender: '',
@@ -175,7 +152,6 @@ export default function LostReportForm() {
     } catch (error) {
       console.error("Error submitting lost report:", error);
       setSubmitStatus('error');
-      setNotificationStatus('error');
     }
   };
 
@@ -203,42 +179,43 @@ export default function LostReportForm() {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <InputField
-                label="Breed"
-                name="breed"
-                value={formData.breed}
-                onChange={handleInputChange}
-                required
-              />
-              <InputField
-                label="Gender"
-                name="gender"
-                value={formData.gender}
-                onChange={handleInputChange}
-                required
-              />
-              <InputField
-                label="Age"
-                name="age"
-                value={formData.age}
-                onChange={handleInputChange}
-                type="number"
-                required
-              />
-              <InputField
-                label="Color"
-                name="color"
-                value={formData.color}
-                onChange={handleInputChange}
-                required
-              />
-              <InputField
-                label="Lost Address"
-                name="lostAddress"
-                value={formData.lostAddress}
-                onChange={handleInputChange}
-                required
-              />
+     <InputField
+  label="Breed"
+  name="breed"
+  value={formData.breed}
+  onChange={handleInputChange}
+  required
+/>
+<InputField
+  label="Gender"
+  name="gender"
+  value={formData.gender}
+  onChange={handleInputChange}
+  required
+/>
+<InputField
+  label="Age"
+  name="age"
+  value={formData.age}
+  onChange={handleInputChange}
+  type="number"
+  required
+/>
+<InputField
+  label="Color"
+  name="color"
+  value={formData.color}
+  onChange={handleInputChange}
+  required
+/>
+<InputField
+  label="Lost Address"
+  name="lostAddress"
+  value={formData.lostAddress}
+  onChange={handleInputChange}
+  required
+/>
+
             </div>
             
             <div className="border p-4 rounded-md bg-gray-50">
@@ -336,13 +313,6 @@ export default function LostReportForm() {
               </div>
             )}
 
-            <div className="flex items-center bg-blue-50 p-4 rounded-md mb-4">
-              <Bell className="w-5 h-5 text-blue-600 mr-2" />
-              <p className="text-blue-700 text-sm">
-                <span className="font-medium">Notification Alert:</span> When you submit this form, all registered users will receive a notification about this lost pet.
-              </p>
-            </div>
-
             <button
               type="submit"
               className="w-full py-3 bg-yellow-600 text-white rounded-md font-semibold hover:bg-yellow-700 transition"
@@ -352,31 +322,13 @@ export default function LostReportForm() {
             
             {submitStatus === 'success' && (
               <div className="mt-4 bg-green-100 border-l-4 border-green-500 p-4 rounded">
-                <div className="flex items-center">
-                  <p className="text-green-700 flex-grow">Report submitted successfully!</p>
-                  {notificationStatus === 'sending' && (
-                    <span className="flex items-center text-yellow-600">
-                      <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-                      Sending notifications...
-                    </span>
-                  )}
-                  {notificationStatus === 'success' && (
-                    <span className="text-green-700 flex items-center">
-                      <Bell className="w-4 h-4 mr-1" />
-                      Notifications sent to all users
-                    </span>
-                  )}
-                </div>
+                <p className="text-green-700">Report submitted successfully!</p>
               </div>
             )}
             
             {submitStatus === 'error' && (
               <div className="mt-4 bg-red-100 border-l-4 border-red-500 p-4 rounded">
-                <p className="text-red-700">
-                  {notificationStatus === 'error' 
-                    ? 'Error submitting report and sending notifications. Please try again.' 
-                    : 'Error submitting report. Please try again.'}
-                </p>
+                <p className="text-red-700">Error submitting report. Please try again.</p>
               </div>
             )}
           </form>
@@ -386,12 +338,12 @@ export default function LostReportForm() {
   );
 }
 
-function InputField({ label, name, value, onChange, type = "text" }) {
+function InputField({ label, name, value, onChange }) {
   return (
     <div>
       <label className="block text-gray-700 text-sm font-medium mb-1">{label}</label>
       <input
-        type={type}
+        type="text"
         name={name}
         value={value}
         onChange={onChange}

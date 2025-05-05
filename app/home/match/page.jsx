@@ -78,7 +78,6 @@ const istDate = date.toLocaleString('en-IN', options);
               </div>
               <div>
                 <h3 className="text-xl font-bold text-gray-900">{match.dogAUser.name}</h3>
-                <p className="text-sm text-gray-600">{match.dogAUser.breed}</p>
                 <div className="flex items-center gap-2 mt-1">
                   <span className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-800">{match.dogAUser.gender}</span>
                 </div>

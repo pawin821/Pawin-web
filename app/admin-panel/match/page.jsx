@@ -5,6 +5,154 @@ import { auth, getMatchData } from '../../../firebase/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { useRouter } from 'next/navigation'; // If you're using App Router
 
+// // Simulating Firebase import and getMatchData function
+// const getMatchData = () => {
+//   // This would be your actual Firebase function
+//   return Promise.resolve([
+//     {
+//       id: "match001",
+//       dogA: "user_abc",
+//       dogB: "user_xyz",
+//       timestamp: "2025-05-01T14:30:00",
+//       status: "Matched",
+//       matchScore: 95,
+//       dogAUser: { 
+//         id: "user_abc", 
+//         name: "Max", 
+//         breed: "Golden Retriever",
+//         age: 3,
+//         gender: "Male",
+//         owner: "Sarah Johnson",
+//         phone: "+1 (555) 123-4567",
+//         image: "/api/placeholder/200/200"
+//       },
+//       dogBUser: { 
+//         id: "user_xyz", 
+//         name: "Bella", 
+//         breed: "Labrador Retriever",
+//         age: 2,
+//         gender: "Female",
+//         owner: "Michael Smith",
+//         phone: "+1 (555) 234-5678",
+//         image: "/api/placeholder/200/200"
+//       }
+//     },
+//     {
+//       id: "match002",
+//       dogA: "user_def",
+//       dogB: "user_uvw",
+//       timestamp: "2025-05-02T09:45:00",
+//       status: "Pending",
+//       matchScore: 87,
+//       dogAUser: { 
+//         id: "user_def", 
+//         name: "Charlie", 
+//         breed: "French Bulldog",
+//         age: 4,
+//         gender: "Male",
+//         owner: "Emma Davis",
+//         phone: "+1 (555) 345-6789",
+//         image: "/api/placeholder/200/200"
+//       },
+//       dogBUser: { 
+//         id: "user_uvw", 
+//         name: "Luna", 
+//         breed: "Poodle",
+//         age: 3,
+//         gender: "Female",
+//         owner: "Daniel Brown",
+//         phone: "+1 (555) 456-7890",
+//         image: "/api/placeholder/200/200"
+//       }
+//     },
+//     {
+//       id: "match003",
+//       dogA: "user_ghi",
+//       dogB: "user_rst",
+//       timestamp: "2025-05-02T16:15:00",
+//       status: "Confirmed",
+//       matchScore: 92,
+//       dogAUser: { 
+//         id: "user_ghi", 
+//         name: "Cooper", 
+//         breed: "German Shepherd",
+//         age: 5,
+//         gender: "Male",
+//         owner: "Olivia Wilson",
+//         phone: "+1 (555) 567-8901",
+//         image: "/api/placeholder/200/200"
+//       },
+//       dogBUser: { 
+//         id: "user_rst", 
+//         name: "Lucy", 
+//         breed: "Beagle",
+//         age: 2,
+//         gender: "Female",
+//         owner: "James Taylor",
+//         phone: "+1 (555) 678-9012",
+//         image: "/api/placeholder/200/200"
+//       }
+//     },
+//     {
+//       id: "match004",
+//       dogA: "user_jkl",
+//       dogB: "user_opq",
+//       timestamp: "2025-05-03T11:30:00",
+//       status: "Matched",
+//       matchScore: 89,
+//       dogAUser: { 
+//         id: "user_jkl", 
+//         name: "Bailey", 
+//         breed: "Siberian Husky",
+//         age: 3,
+//         gender: "Female",
+//         owner: "Noah Martinez",
+//         phone: "+1 (555) 789-0123",
+//         image: "/api/placeholder/200/200"
+//       },
+//       dogBUser: { 
+//         id: "user_opq", 
+//         name: "Rocky", 
+//         breed: "Boxer",
+//         age: 4,
+//         gender: "Male",
+//         owner: "Sophia Anderson",
+//         phone: "+1 (555) 890-1234",
+//         image: "/api/placeholder/200/200"
+//       }
+//     },
+//     {
+//       id: "match005",
+//       dogA: "user_mno",
+//       dogB: "user_lmn",
+//       timestamp: "2025-05-04T10:00:00",
+//       status: "Pending",
+//       matchScore: 84,
+//       dogAUser: { 
+//         id: "user_mno", 
+//         name: "Milo", 
+//         breed: "Shih Tzu",
+//         age: 2,
+//         gender: "Male",
+//         owner: "Isabella Thomas",
+//         phone: "+1 (555) 901-2345",
+//         image: "/api/placeholder/200/200"
+//       },
+//       dogBUser: { 
+//         id: "user_lmn", 
+//         name: "Daisy", 
+//         breed: "Dachshund",
+//         age: 3,
+//         gender: "Female",
+//         owner: "Benjamin Garcia",
+//         phone: "+1 (555) 012-3456",
+//         image: "/api/placeholder/200/200"
+//       }
+//     }
+//   ]);
+// };
+
+// Format date to a more readable format
 const formatDate = (dateString) => {
   const date = new Date(dateString);
   return date.toLocaleString('en-US', {
@@ -245,7 +393,20 @@ export default function DogMatchesDashboard() {
           </div>
           
    
-   
+          
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-500">Pending Matches</p>
+                <p className="text-3xl font-bold text-gray-900">
+                  {matches.filter(match => match.status === "Pending").length}
+                </p>
+              </div>
+              <div className="p-3 bg-yellow-100 rounded-full">
+                <Clock size={24} className="text-yellow-600" />
+              </div>
+            </div>
+          </div>
         </div>
         
         {/* Filters */}

@@ -3,9 +3,10 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { CldUploadWidget } from 'next-cloudinary';
-import { Upload, Loader2, AlertCircle, X, CheckCircle, Camera } from 'lucide-react';
-import { checkUserBadge, savePetDatingProfile } from '../../../firebase/firebase';
+import { Upload, Loader2, AlertCircle, X, CheckCircle, Camera, CreditCard } from 'lucide-react';
+import { checkUserBadge, savePetDatingProfile, saveOrder } from '../../../firebase/firebase';
 import { useAuth } from "@clerk/nextjs";
+import Script from 'next/script';
 
 export default function PetDatingProfileForm() {
   const { userId } = useAuth();
@@ -28,6 +29,12 @@ export default function PetDatingProfileForm() {
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
   const [submitStatus, setSubmitStatus] = useState('');
+  const [showPayment, setShowPayment] = useState(false);
+  const [paymentLoading, setPaymentLoading] = useState(false);
+  const [paymentComplete, setPaymentComplete] = useState(false);
+  
+  // Profile creation pricing
+  const PROFILE_COST = 1; // in INR
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -115,24 +122,98 @@ export default function PetDatingProfileForm() {
     }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!validateForm()) {
-      // Scroll to the first error
-      const firstErrorField = Object.keys(errors)[0];
-      const element = document.querySelector(`[name="${firstErrorField}"]`);
-      if (element) element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      return;
+  // Initialize Razorpay payment
+  const handlePayment = async () => {
+    setPaymentLoading(true);
+    try {
+      // This is a simple client-side implementation
+      const options = {
+        key: "rzp_live_zrvbyqISpF58jd", // Your Razorpay key
+        amount: PROFILE_COST * 100, // Amount in paise
+        currency: "INR",
+        name: "Pet Dating Profile",
+        description: `Payment for creating ${formData.petName}'s dating profile`,
+        image: formData.mediaFiles[0]?.url || "",
+        handler: function (response) {
+          // This function runs when payment is successful
+          const order = {
+            petId: formData.petName,
+            buyerId: userId,
+            price: PROFILE_COST,
+            sellerId: "platform" // Platform itself
+          };
+          
+          if (response.razorpay_payment_id) {
+            // Payment successful - user has paid
+            console.log("Payment successful!", response);
+            setPaymentComplete(true);
+            setPaymentLoading(false);
+            
+            // Save the order record
+            saveOrder(order)
+              .then((orderId) => {
+                console.log('Payment recorded with ID:', orderId);
+                // Proceed with profile creation
+                submitProfileData();
+              })
+              .catch((error) => {
+                console.error('Failed to record payment:', error);
+                setSubmitStatus('error');
+                alert("Payment recorded but failed to save profile. Please contact support.");
+              });
+          } else {
+            // This shouldn't happen with Razorpay but just in case
+            alert("Payment was not completed successfully.");
+            setPaymentLoading(false);
+          }
+        },
+        // This triggers if user closes the payment modal without paying
+        modal: {
+          ondismiss: function() {
+            setPaymentLoading(false);
+            console.log("Payment modal closed without payment");
+            alert("Payment cancelled. Please try again.");
+          }
+        },
+        prefill: {
+          name: formData.petName,
+          email: "",
+          contact: ""
+        },
+        notes: {
+          petName: formData.petName,
+          userId: userId
+        },
+        theme: {
+          color: "#EC4899" // Pink color to match the form theme
+        }
+      };
+      
+      // Check if Razorpay is loaded in the window object
+      if (window.Razorpay) {
+        const rzp = new window.Razorpay(options);
+        rzp.open();
+      } else {
+        alert("Razorpay SDK failed to load. Please check your internet connection.");
+        setPaymentLoading(false);
+      }
+    } catch (error) {
+      console.error("Payment error:", error);
+      alert("Payment failed to initialize. Please try again.");
+      setPaymentLoading(false);
     }
-    
+  };
+
+  const submitProfileData = async () => {
     setSubmitStatus('submitting');
 
     const petProfileData = {
       ...formData,
       media: formData.mediaFiles,
       hasBadge: userHasBadge,
-      createdAt: new Date()
+      createdAt: new Date(),
+      paymentComplete: true,
+      paymentAmount: PROFILE_COST
     };
 
     try {
@@ -163,6 +244,27 @@ export default function PetDatingProfileForm() {
     }
   };
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!validateForm()) {
+      // Scroll to the first error
+      const firstErrorField = Object.keys(errors)[0];
+      const element = document.querySelector(`[name="${firstErrorField}"]`);
+      if (element) element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    
+    // Show payment before submitting form
+    setShowPayment(true);
+    
+    // Auto-scroll to payment section
+    setTimeout(() => {
+      const paymentSection = document.getElementById('payment-section');
+      if (paymentSection) paymentSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -173,6 +275,12 @@ export default function PetDatingProfileForm() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50 py-12 px-4 sm:px-6 lg:px-8">
+      {/* Load Razorpay Script */}
+      <Script
+        src="https://checkout.razorpay.com/v1/checkout.js"
+        strategy="lazyOnload"
+      />
+      
       <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
         <div className="bg-gradient-to-r from-pink-500 to-purple-600 py-6 px-8">
           <h1 className="text-3xl font-bold text-white text-center">Create Pet Dating Profile</h1>
@@ -436,6 +544,57 @@ export default function PetDatingProfileForm() {
               </div>
             )}
 
+            {/* Payment Section */}
+            {showPayment && (
+              <div id="payment-section" className="mt-8 bg-blue-50 rounded-lg p-6 border border-blue-200">
+                <h3 className="text-xl font-semibold text-blue-900 mb-4">Complete Payment</h3>
+                
+                <div className="bg-white p-4 rounded-md shadow-sm mb-4">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-gray-700 font-medium">Creating profile for {formData.petName}</span>
+                    <span className="text-gray-700">₹{PROFILE_COST}.00</span>
+                  </div>
+                  <div className="border-t border-gray-200 pt-2 flex justify-between items-center">
+                    <span className="font-medium text-gray-900">Total</span>
+                    <span className="font-bold text-lg text-gray-900">₹{PROFILE_COST}.00</span>
+                  </div>
+                </div>
+                
+                {paymentComplete ? (
+                  <div className="bg-green-100 p-4 rounded-md border border-green-300 flex items-center mb-4">
+                    <CheckCircle className="w-6 h-6 text-green-600 mr-2" />
+                    <div>
+                      <p className="font-medium text-green-800">Payment Successful!</p>
+                      <p className="text-green-700 text-sm">Your profile is being created...</p>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handlePayment}
+                    disabled={paymentLoading}
+                    className={`w-full py-3 rounded-md font-semibold transition shadow-md flex items-center justify-center ${
+                      paymentLoading
+                        ? 'bg-gray-400 cursor-not-allowed text-gray-100'
+                        : 'bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white'
+                    }`}
+                  >
+                    {paymentLoading ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                        Processing Payment...
+                      </>
+                    ) : (
+                      <>
+                        <CreditCard className="w-5 h-5 mr-2" />
+                        Pay ₹{PROFILE_COST}.00
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
+            )}
+
             {/* Status Messages */}
             {submitStatus === 'success' && (
               <div id="success-message" className="bg-green-100 border-l-4 border-green-500 p-4 rounded mt-6 flex items-start">
@@ -457,25 +616,15 @@ export default function PetDatingProfileForm() {
               </div>
             )}
 
-            {/* Submit Button */}
-            <button
-              type="submit"
-              className={`w-full py-3 mt-6 text-white rounded-md font-semibold transition shadow-md ${
-                submitStatus === 'submitting'
-                  ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700'
-              }`}
-              disabled={submitStatus === 'submitting'}
-            >
-              {submitStatus === 'submitting' ? (
-                <div className="flex items-center justify-center">
-                  <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                  Creating Profile...
-                </div>
-              ) : (
-                'Create Pet Dating Profile'
-              )}
-            </button>
+            {/* Submit Button - only show if payment is not initiated yet */}
+            {!showPayment && (
+              <button
+                type="submit"
+                className="w-full py-3 mt-6 text-white rounded-md font-semibold transition shadow-md bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700"
+              >
+                Continue to Payment
+              </button>
+            )}
           </form>
         </div>
       </div>

@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Heart, ShoppingBag, Film, Dog, Search, Menu, X, Home, Settings, Upload, HeartPlus, FilesIcon } from 'lucide-react';
+import { Heart, ShoppingBag, Film, Dog, Search, Menu,HeartHandshake, X, Home, Settings, Upload, HeartPlus, FilesIcon } from 'lucide-react';
 import { UserButton } from '@clerk/nextjs';
 
 export default function PetNavbar() {
@@ -61,6 +61,9 @@ export default function PetNavbar() {
     { name: 'Lost', icon: <Search className="w-6 h-6" />, href: '/home/lost' },
     { name: 'Selling', icon: <ShoppingBag className="w-6 h-6" />, href: '/home/selling' },
     { name: 'Vet Listing', icon: <Search className="w-6 h-6" />, href: '/home/vets' },
+        { name: 'Donation', icon: <Heart className="w-6 h-6" />, href: '/home/donation' },
+            { name: 'My Match', icon: <HeartHandshake className="w-6 h-6" />, href: '/home/match' },
+
     { name: 'Upload Reels', icon: <Upload className="w-6 h-6" />, href: '/home/reels-upload' },
     { name: 'Adoption Upload Form', icon: <HeartPlus className="w-6 h-6" />, href: '/home/upload-ad' },
     { name: 'Lost Report', icon: <FilesIcon className="w-6 h-6" />, href: '/home/lost-report' },

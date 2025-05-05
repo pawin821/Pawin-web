@@ -82,7 +82,7 @@ export const savePetDatingProfile = async (profileId, profileData) => {
 };
 export const getAllPetDatingProfiles = async (currentUserId) => {
   try {
-    // Step 1: Get the current user's profile to extract their breed and location
+    // Step 1: Get the current user's profile to extract their breed, location, and gender
     const profilesCollectionRef = collection(db, 'petDatingProfiles');
     
     console.log('Searching for profiles for user ID:', currentUserId);
@@ -100,16 +100,18 @@ export const getAllPetDatingProfiles = async (currentUserId) => {
     const currentUserData = userProfileQuerySnapshot.docs[0].data();
     const currentBreed = currentUserData.breed;
     const currentLocation = currentUserData.location || '';
+    const currentGender = currentUserData.gender || ''; // Get the current user's gender
     
     console.log('Current user breed:', currentBreed);
     console.log('Current user location:', currentLocation);
+    console.log('Current user gender:', currentGender);
     
     // Step 2: Get all profiles
     const allProfilesSnapshot = await getDocs(profilesCollectionRef);
     
     console.log('Total profiles found:', allProfilesSnapshot.size);
     
-    // Step 3: Map and filter out the current user
+    // Step 3: Map and filter out the current user and filter by different gender
     const allProfiles = allProfilesSnapshot.docs
       .map((doc) => {
         const data = doc.data();
@@ -128,9 +130,12 @@ export const getAllPetDatingProfiles = async (currentUserId) => {
           createdAt: data.createdAt || new Date().toISOString()
         };
       })
-      .filter(profile => profile.userId !== currentUserId);
+      .filter(profile => {
+        // Filter out current user and profiles with the same gender
+        return profile.userId !== currentUserId && profile.gender !== currentGender;
+      });
     
-    console.log('Profiles after filtering current user:', allProfiles.length);
+    console.log('Profiles after filtering current user and gender:', allProfiles.length);
     
     // Step 4: Calculate string similarity for location and separate into matching and non-matching profiles
     const matchingProfiles = [];
@@ -213,29 +218,18 @@ export const getAllPetDatingProfiles = async (currentUserId) => {
       });
     };
     
-    // Sort both result sets
+    // Sort both profile groups
     const sortedMatchingProfiles = sortProfiles(matchingProfiles);
     const sortedNonMatchingProfiles = sortProfiles(nonMatchingProfiles);
     
-    // Helper function to shuffle an array (Fisher-Yates algorithm)
-    const shuffleArray = (array) => {
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-      }
-      return array;
-    };
+    // Step 6: Combine the two groups, with matching profiles first
+    const finalSortedProfiles = [...sortedMatchingProfiles, ...sortedNonMatchingProfiles];
     
-    // Randomize order within each group
-    const randomizedMatchingProfiles = shuffleArray([...sortedMatchingProfiles]);
-    const randomizedNonMatchingProfiles = shuffleArray([...sortedNonMatchingProfiles]);
+    console.log('Final sorted profiles count:', finalSortedProfiles.length);
     
-    console.log(`Returning ${randomizedMatchingProfiles.length + randomizedNonMatchingProfiles.length} total profiles (${randomizedMatchingProfiles.length} matching, ${randomizedNonMatchingProfiles.length} non-matching)`);
-    
-    // Return all profiles in the correct order: matching profiles first (randomized), then non-matching profiles (randomized)
-    return [...randomizedMatchingProfiles, ...randomizedNonMatchingProfiles];
+    return finalSortedProfiles;
   } catch (error) {
-    console.error('Error getting filtered pet dating profiles:', error);
+    console.error('Error getting pet dating profiles:', error);
     throw error;
   }
 };
@@ -1243,7 +1237,7 @@ export const likeDog = async (fromDogId, toDogId) => {
         timestamp: serverTimestamp(),
       });
 
-      console.log(`🎉 Match found between ${fromDogId} and ${toDogId}`);
+      alert("You got matched! check match section in menu")
       return true;
     } else {
       console.log(`👍 ${fromDogId} liked ${toDogId}, waiting for mutual`);

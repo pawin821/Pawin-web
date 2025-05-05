@@ -242,9 +242,9 @@ const UserVerificationScreen = () => {
           <Link href="/admin-panel/orders" className="bg-white bg-opacity-20 hover:bg-opacity-30 text-black px-4 py-2 rounded-md font-medium transition duration-150">
             Order
           </Link>
-          <Link href="/admin-panel/match" className="bg-white bg-opacity-20 hover:bg-opacity-30 text-black px-4 py-2 rounded-md font-medium transition duration-150">
+          {/* <Link href="/admin-panel/match" className="bg-white bg-opacity-20 hover:bg-opacity-30 text-black px-4 py-2 rounded-md font-medium transition duration-150">
             Match
-          </Link>
+          </Link> */}
            <Link href="/admin-panel/donations" className="bg-white bg-opacity-20 hover:bg-opacity-30 text-black px-4 py-2 rounded-md font-medium transition duration-150">
             Donations
           </Link>

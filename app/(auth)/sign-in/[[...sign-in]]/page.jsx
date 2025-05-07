@@ -8,7 +8,7 @@ export default function Page() {
     <section class="relative flex h-32 items-end bg-gray-900 lg:col-span-5 lg:h-full xl:col-span-6">
       <img
         alt=""
-        src="http://images.unsplash.com/photo-1594499468121-f45e83e30df4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwxMjA3fDB8MXxzZWFyY2h8MXx8ZG9nJTIwcGVyc29ufHwwfHx8fDE2MzEwNTA5ODE&ixlib=rb-1.2.1&q=80&w=1080"
+        src="/shitzu.png"
         class="absolute inset-0 h-full w-full object-cover opacity-80"
       />
 

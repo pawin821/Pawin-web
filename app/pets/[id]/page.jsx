@@ -191,7 +191,7 @@ export default function PetDetail({ params }) {
     // This is a simple client-side implementation
     const options = {
       key: "rzp_live_zrvbyqISpF58jd", // Your Razorpay key
-      amount: 1 * 100, // Amount in paise
+      amount: pet.cost * 100, // Amount in paise
       currency: "INR",
       name: "Pet Marketplace",
       description: `Payment for ${pet.breed}`,
@@ -432,19 +432,16 @@ export default function PetDetail({ params }) {
                   <div className="text-sm mb-1 text-indigo-700">Age</div>
                   <div className="font-semibold text-lg">{pet.age}</div>
                 </div>
-                <div className="bg-indigo-50 p-4 rounded-xl">
-                  <div className="text-sm mb-1 text-indigo-700">Price</div>
-            <div className="font-bold text-xl text-indigo-700">
-  {ad ? "Not Applicable" : `$${pet.cost}`}
-</div>
+            {!ad && (
+  <div className="bg-indigo-50 p-4 rounded-xl">
+    <div className="text-sm mb-1 text-indigo-700">Price</div>
+    <div className="font-bold text-xl text-indigo-700">
+       ₹{pet.cost}
+    </div>
+  </div>
+)}
 
-                </div>
-                <div className="bg-indigo-50 p-4 rounded-xl">
-                  <div className="text-sm mb-1 text-indigo-700">Listed</div>
-                  <div className="font-semibold text-lg">
-                    {new Date(pet.createdAt).toLocaleDateString()}
-                  </div>
-                </div>
+              
                 <div className="bg-indigo-50 p-4 rounded-xl">
                   <div className="text-sm mb-1 text-indigo-700">color</div>
                   <div className="font-bold text-xl text-indigo-700">{pet.color}</div>
@@ -457,11 +454,7 @@ export default function PetDetail({ params }) {
                 </div>
               </div>
 
-              {/* Pet Description */}
-              <div className="mb-8">
-                <h3 className="text-xl font-semibold mb-3">About {pet.name || 'this pet'}</h3>
-               
-              </div>
+   
 
               {/* Contact/Action Section */}
           

@@ -8,7 +8,7 @@ export default function Page() {
     <section class="relative flex h-32 items-end bg-gray-900 lg:col-span-5 lg:h-full xl:col-span-6">
       <img
         alt=""
-        src="https://i.pinimg.com/736x/47/ff/93/47ff934cfb7ec2227f6b2f2e0c7ed072.jpg"
+        src="/golden.png"
         class="absolute inset-0 h-full w-full object-cover opacity-80"
       />
 

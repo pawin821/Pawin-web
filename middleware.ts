@@ -9,6 +9,7 @@ const isProtectedRoute = createRouteMatcher ( [
 '/forum(.*)',
 '/home(.*)',
 'ai-intrview(.*)',
+'/extradata(.*)'
 ]);
 export const config = {
   matcher: ["/((?!.*\\..*|_next).*)", "/", "/(api|trpc)(.*)"],

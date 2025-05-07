@@ -480,20 +480,55 @@ export default function PetRegistrationForm() {
                     </div>
 
                     {/* Vaccine */}
-                    <div className="md:col-span-2">
-                      <label className="block text-gray-700 text-sm font-medium mb-2">
-                        Vaccination Details <span className="text-red-500">*</span>
-                      </label>
-                      <textarea
-                        name="vaccine"
-                        value={formData.vaccine}
-                        onChange={handleInputChange}
-                        required
-                        rows="3"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
-                        placeholder="List the vaccinations your pet has received..."
-                      ></textarea>
-                    </div>
+                  <div className="md:col-span-2">
+  <label className="block text-gray-700 text-sm font-medium mb-2">
+    Vaccination Status <span className="text-red-500">*</span>
+  </label>
+  <div className="flex items-center space-x-4">
+    <label className="inline-flex items-center">
+      <input
+        type="radio"
+        name="vaccine"
+        value="Yes"
+        checked={formData.vaccine === 'Yes'}
+        onChange={handleInputChange}
+        required
+        className="form-radio text-purple-500"
+      />
+      <span className="ml-2">Yes</span>
+    </label>
+    <label className="inline-flex items-center">
+      <input
+        type="radio"
+        name="vaccine"
+        value="No"
+        checked={formData.vaccine === 'No'}
+        onChange={handleInputChange}
+        required
+        className="form-radio text-purple-500"
+      />
+      <span className="ml-2">No</span>
+    </label>
+  </div>
+
+  {/* Conditionally show vaccine details if 'Yes' is selected */}
+  {formData.vaccine === 'Yes' && (
+    <div className="mt-4">
+      <label className="block text-gray-700 text-sm font-medium mb-2">
+        Vaccination Details <span className="text-red-500">*</span>
+      </label>
+      <textarea
+        name="vaccineDetails"
+        value={formData.vaccineDetails}
+        onChange={handleInputChange}
+        rows="3"
+        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
+        placeholder="Please list the vaccinations your pet has received..."
+      ></textarea>
+    </div>
+  )}
+</div>
+
                   </div>
 
                   {/* Coordinates (hidden fields) */}

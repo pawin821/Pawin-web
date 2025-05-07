@@ -7,26 +7,26 @@ import { CldUploadWidget } from 'next-cloudinary';
 import { useAuth } from "@clerk/nextjs";
 import axios from 'axios';
 import { getToken } from "firebase/messaging";
-
-
+import { useRouter } from "next/navigation";
 
 export default function PetRegistrationForm() {
-
-  const { userId } = useAuth();
+  const { userId,isSignedIn } = useAuth();
+  const router = useRouter()
 
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
     location: '',
+    ownsPet: '', // New field for pet ownership
     petType: '',
     breed: '',
     userType: '',
     badge:'',
     vet:'',
     documents: [],
-    profilePhoto: '', // Added field for profile photo
-    latitude: null,   // Added field for latitude
-    longitude: null   // Added field for longitude
+    profilePhoto: '',
+    latitude: null,
+    longitude: null
   });
   
   const [isUploading, setIsUploading] = useState(false);
@@ -41,7 +41,18 @@ export default function PetRegistrationForm() {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Reset pet-related fields if user changes "owns pet" to "no"
+    if (name === "ownsPet" && value === "no") {
+      setFormData(prev => ({ 
+        ...prev, 
+        [name]: value,
+        petType: '',
+        breed: ''
+      }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleSuccess = async (result) => {
@@ -49,7 +60,6 @@ export default function PetRegistrationForm() {
     setIsUploading(false);
     setIsUploaded(true);
   
-    
     if (result.info && result.info.secure_url) {
       console.log(result.info.secure_url); // URL of document
       
@@ -164,6 +174,7 @@ export default function PetRegistrationForm() {
       
       // Save user data directly to Firebase - document URLs are already in formData
       await saveUserData(userId, formData);
+        localStorage.setItem("isVisited", "true");
       
       // Set success and reset submission state
       setSubmitSuccess(true);
@@ -175,26 +186,40 @@ export default function PetRegistrationForm() {
       setIsSubmitting(false);
     }
   };
-      async function requestPermission() {
-      const permission = await Notification.requestPermission();
-      if (permission === "granted") {
-        // Generate Token
-        const token = await getToken(messaging, {
-          vapidKey:
-            "BGX1F5woV-7Quwi7c2vcxIDuOUsal88_UW4ygOOfHDwVMdqRAH-uCDrEBzUts1U0AN5oVJxxodtmmOSlJ4EOjvc",
-        });
-         await axios.post('/api/subscribe', { token });
-        console.log("Token Gen", token);
-        // Send this token  to server ( db)
-      } else if (permission === "denied") {
-        alert("You denied for the notification");
-      }
-    }
   
-    useEffect(() => {
-      // Req user for notification permission
-      requestPermission();
-    }, []);
+  async function requestPermission() {
+    const permission = await Notification.requestPermission();
+    if (permission === "granted") {
+      // Generate Token
+      const token = await getToken(messaging, {
+        vapidKey:
+          "BGX1F5woV-7Quwi7c2vcxIDuOUsal88_UW4ygOOfHDwVMdqRAH-uCDrEBzUts1U0AN5oVJxxodtmmOSlJ4EOjvc",
+      });
+       await axios.post('/api/subscribe', { token });
+      console.log("Token Gen", token);
+      // Send this token  to server ( db)
+    } else if (permission === "denied") {
+      alert("You denied for the notification");
+    }
+  }
+
+  useEffect(() => {
+    // Req user for notification permission
+    requestPermission();
+  }, []);
+  
+
+   useEffect(() => {
+    const isVisited = localStorage.getItem("isVisited");
+
+    if (isSignedIn && isVisited === "true") {
+      router.push("/home");
+    }
+  }, [isSignedIn, router]);
+
+
+
+  
   // Effect to automatically submit form after getting location
   useEffect(() => {
     // Only proceed if we were in the middle of submitting and now have location data
@@ -223,12 +248,18 @@ export default function PetRegistrationForm() {
   const needsDocuments = formData.userType === 'breeder' || formData.userType === 'vet';
   const isVet = formData.userType === 'vet';
   const showBreedField = formData.petType === 'dog' || formData.petType === 'cat';
+  const showPetFields = formData.ownsPet === 'yes';
 
-  // Check if form is complete based on user type
+  // Check if form is complete based on user type and pet ownership
   const isFormComplete = () => {
     const baseRequirements = formData.name && formData.phone && formData.location && 
-                            formData.petType && (!showBreedField || formData.breed) && 
-                            formData.userType;
+                            formData.ownsPet && formData.userType;
+    
+    // If user owns pets, require pet type and breed (if applicable)
+    if (formData.ownsPet === 'yes' && 
+        (!formData.petType || (showBreedField && !formData.breed))) {
+      return false;
+    }
     
     if (needsDocuments && formData.documents.length === 0) {
       return false;
@@ -356,52 +387,9 @@ export default function PetRegistrationForm() {
                     )}
                   </p>
                 </div>
-              </div>
-              
-              {/* Pet Information */}
-              <div className="space-y-4">
-                <h2 className="text-xl font-semibold text-gray-800">Pet Information</h2>
                 
                 <div>
-                  <label htmlFor="petType" className="block text-sm font-medium text-gray-700">Pet Type</label>
-                  <select
-                    id="petType"
-                    name="petType"
-                    value={formData.petType}
-                    onChange={handleInputChange}
-                    required
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                  >
-                    <option value="" disabled>Select a pet type</option>
-                    <option value="dog">Dog</option>
-                    <option value="cat">Cat</option>
-                    <option value="bird">Bird</option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
-                
-                {/* Breed field - only shown for dogs and cats */}
-                {showBreedField && (
-                  <div>
-                    <label htmlFor="breed" className="block text-sm font-medium text-gray-700">Breed</label>
-                    <select
-                      id="breed"
-                      name="breed"
-                      value={formData.breed}
-                      onChange={handleInputChange}
-                      required
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                    >
-                      <option value="" disabled>Select a breed</option>
-                      {formData.petType && breedOptions[formData.petType].map(breed => (
-                        <option key={breed} value={breed}>{breed}</option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-                
-                <div>
-                  <label htmlFor="userType" className="block text-sm font-medium text-gray-700">Are you a:</label>
+                  <label htmlFor="userType" className="block text-sm font-medium text-gray-700">Register As</label>
                   <select
                     id="userType"
                     name="userType"
@@ -416,6 +404,71 @@ export default function PetRegistrationForm() {
                     <option value="vet">Veterinarian</option>
                   </select>
                 </div>
+              </div>
+              
+              {/* Pet Ownership Question */}
+              <div className="space-y-4">
+                <h2 className="text-xl font-semibold text-gray-800">Pet Information</h2>
+                
+                <div>
+                  <label htmlFor="ownsPet" className="block text-sm font-medium text-gray-700">Do you own a pet?</label>
+                  <select
+                    id="ownsPet"
+                    name="ownsPet"
+                    value={formData.ownsPet}
+                    onChange={handleInputChange}
+                    required
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                  >
+                    <option value="" disabled>Select an option</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                  </select>
+                </div>
+                
+                {/* Pet Type and Breed - Only shown if user owns a pet */}
+                {showPetFields && (
+                  <>
+                    <div>
+                      <label htmlFor="petType" className="block text-sm font-medium text-gray-700">Pet Category
+</label>
+                      <select
+                        id="petType"
+                        name="petType"
+                        value={formData.petType}
+                        onChange={handleInputChange}
+                        required
+                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                      >
+                        <option value="" disabled>Select a pet type</option>
+                        <option value="dog">Dog</option>
+                        <option value="cat">Cat</option>
+                        <option value="bird">Bird</option>
+                        <option value="other">Other</option>
+                      </select>
+                    </div>
+                    
+                    {/* Breed field - only shown for dogs and cats */}
+                    {showBreedField && (
+                      <div>
+                        <label htmlFor="breed" className="block text-sm font-medium text-gray-700">Breed</label>
+                        <select
+                          id="breed"
+                          name="breed"
+                          value={formData.breed}
+                          onChange={handleInputChange}
+                          required
+                          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                        >
+                          <option value="" disabled>Select a breed</option>
+                          {formData.petType && breedOptions[formData.petType].map(breed => (
+                            <option key={breed} value={breed}>{breed}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
               
               {/* Profile Photo Upload for Veterinarians */}
@@ -506,7 +559,7 @@ export default function PetRegistrationForm() {
                   <h2 className="text-xl font-semibold text-gray-800">Document Upload</h2>
                   <p className="text-sm text-gray-600">
                     {formData.userType === 'breeder' 
-                      ? 'Please upload your breeding license or certification documents.' 
+                      ? 'Please upload your Breeder license or certification documents.' 
                       : 'Please upload your veterinary practice credentials and license.'}
                   </p>
                   

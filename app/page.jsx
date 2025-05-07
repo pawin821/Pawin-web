@@ -118,7 +118,7 @@ export default function LandingPage() {
                 </div>
                 <div className="ml-3 inline-flex rounded-md shadow">
                   <a
-                    href="/sign-in"
+                    href="/home"
                     className="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-800 hover:bg-indigo-900"
                   >
                     Login
@@ -161,7 +161,7 @@ export default function LandingPage() {
                 <div className="mt-4">
                   <h3 className="text-lg font-medium" style={{ color: styles.colors.darkText }}>Buy & Sell Pets</h3>
                   <p className="mt-2 text-gray-600">
-                    Browse listings with detailed information including breed, age, gender, location and price.
+                    Explore a secure marketplace to buy or sell pets with verified listings, detailed profiles, and filters to match your preferences in breed, age, gender, and location.
                   </p>
                   <div className="mt-4 flex flex-wrap gap-2">
                     <span className="bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded-full">Breed</span>
@@ -181,12 +181,12 @@ export default function LandingPage() {
               {/* Module 2: Adoption */}
               <div className="bg-gradient-to-br p-6 rounded-xl shadow-md hover:shadow-lg transition-all" style={{ backgroundColor: styles.colors.mintGreen }}>
                 <div className="flex items-center justify-center w-12 h-12 rounded-md text-white" style={{ backgroundColor: styles.colors.tealBlue }}>
-                  <Heart className="h-6 w-6" />
+                  <PawPrint className="h-6 w-6" />
                 </div>
                 <div className="mt-4">
                   <h3 className="text-lg font-medium" style={{ color: styles.colors.darkText }}>Pet Adoption</h3>
                   <p className="mt-2 text-gray-600">
-                    Find pets in need of loving homes near you. Filter by location and pet details.
+                    Give a pet a second chance by adopting —filter by location, breed, and age to find your ideal companion.
                   </p>
                   <div className="mt-4 flex flex-wrap gap-2">
                     <span className="bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded-full">Nearby</span>
@@ -210,7 +210,7 @@ export default function LandingPage() {
                 <div className="mt-4">
                   <h3 className="text-lg font-medium" style={{ color: styles.colors.darkText }}>Pet Reels</h3>
                   <p className="mt-2 text-gray-600">
-                    Share and watch adorable videos of pets. Similar to Instagram reels but just for pets!
+                    Watch and share delightful pet videos curated just for animal lovers—enjoy trending, funny, and adorable moments from the pet community.
                   </p>
                   <div className="mt-4 flex flex-wrap gap-2">
                     <span className="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full">Trending</span>
@@ -234,7 +234,7 @@ export default function LandingPage() {
                 <div className="mt-4">
                   <h3 className="text-lg font-medium" style={{ color: styles.colors.darkText }}>Lost & Found</h3>
                   <p className="mt-2 text-gray-600">
-                    Report lost pets or help reunite found pets with their owners. Includes details and last seen location.
+                    Report missing pets or post found pets to help reunite furry friends with their owners using detailed information and last known location.
                   </p>
                   <div className="mt-4 flex flex-wrap gap-2">
                     <span className="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">Lost</span>
@@ -258,7 +258,7 @@ export default function LandingPage() {
                 <div className="mt-4">
                   <h3 className="text-lg font-medium" style={{ color: styles.colors.darkText }}>Pet Dating</h3>
                   <p className="mt-2 text-gray-600">
-                    Find the perfect match for your pet with our Tinder-style swiping system. Filter by breed and location.
+                    Match your pet with compatible companions using our intuitive swipe feature—filter by breed, gender, and nearby location for ideal pairing.
                   </p>
                   <div className="mt-4 flex flex-wrap gap-2">
                     <span className="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">Nearby</span>
@@ -274,7 +274,7 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              {/* Module 6: Vet Listing */}
+              {/* Module 6: Vet Services */}
               <div className="bg-gradient-to-br p-6 rounded-xl shadow-md hover:shadow-lg transition-all" style={{ backgroundColor: styles.colors.softOrange, opacity: 0.8 }}>
                 <div className="flex items-center justify-center w-12 h-12 rounded-md text-white" style={{ backgroundColor: styles.colors.tealBlue }}>
                   <Stethoscope className="h-6 w-6" />
@@ -282,7 +282,7 @@ export default function LandingPage() {
                 <div className="mt-4">
                   <h3 className="text-lg font-medium" style={{ color: styles.colors.darkText }}>Vet Services</h3>
                   <p className="mt-2 text-gray-600">
-                    Find and connect with veterinarians near you. View ratings, services, and book appointments.
+                    Locate trusted veterinarians near you, and book appointments easily—whether for routine care or emergencies.
                   </p>
                   <div className="mt-4 flex flex-wrap gap-2">
                     <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Emergency</span>

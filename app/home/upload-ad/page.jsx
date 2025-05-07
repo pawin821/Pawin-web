@@ -373,12 +373,7 @@ export default function AdoptionForm() {
                     label="Not Vaccinated"
                     color="red"
                   />
-                  <VaccineButton 
-                    selected={formData.vaccine === 'Partial'} 
-                    onClick={() => handleVaccineSelect('Partial')}
-                    label="Partial"
-                    color="yellow"
-                  />
+                 
                 </div>
                 {formTouched.vaccine && errors.vaccine && (
                   <p className="text-red-500 text-xs mt-1 flex items-center">

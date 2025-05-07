@@ -472,15 +472,14 @@ export default function PetDetail({ params }) {
                 )}
               </div>
 
-              {/* Pet Description */}
-              <div className="mb-8">
-                <h3 className="text-xl font-semibold mb-3">
-                  {lostData ? 'Information' : `About ${pet.name || 'this pet'}`}
-                </h3>
-        
-              </div>
+  
 
               {/* Contact/Action Section */}
+                   
+    <div className="font-bold text-xl text-indigo-700 p-3">
+      If found, contact us
+    </div>
+
               <div className="space-y-4">
                 {/* Only show Buy button for regular pet listings */}
               

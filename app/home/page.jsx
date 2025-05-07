@@ -2,7 +2,7 @@
 "use client"
 import { useState, useEffect } from 'react';
 import { CheckCircle, Search, Filter, Medal, ArrowUp, ArrowDown } from 'lucide-react';
-import { MapPin, Calendar, PawPrint, Heart, Volume2, VolumeX } from 'lucide-react';
+import { MapPin, Calendar, PawPrint, Heart, Volume2, VolumeX,ShieldCheck  } from 'lucide-react';
 
 import Image from 'next/image';
 import { getPetData } from '../../firebase/firebase';
@@ -274,104 +274,109 @@ export default function PetMarketplace() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredAndSortedPets.map((pet) => (
-              <div key={pet.id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-                {/* Pet Image with improved sizing */}
-                <div className="relative h-72 w-full overflow-hidden rounded-lg">
-                  {pet.media && pet.media.length > 0 ? (
-                    <div className="relative h-full w-full">
-                      {isVideo(pet.media[0].url) ? (
-                        // Video element for video media
-                        <div className="relative h-full w-full">
-                          <video
-                            src={pet.media[0].url}
-                            className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
-                            autoPlay
-                            loop
-                            muted={isMuted}
-                            playsInline
-                          />
-                          
-                          {/* Audio toggle button */}
-                          <button 
-                            onClick={() => setIsMuted(!isMuted)}
-                            className="absolute bottom-3 left-3 bg-black bg-opacity-60 text-white rounded-full p-2 hover:bg-opacity-80 transition-all"
-                            aria-label={isMuted ? "Unmute video" : "Mute video"}
-                          >
-                            {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-                          </button>
-                        </div>
-                      ) : (
-                        // Image element for photo media
-                        <Image
-                          src={pet.media[0].url}
-                          alt={`${pet.breed}`}
-                          fill
-                          className="object-cover transition-transform duration-500 hover:scale-105"
-                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                          priority
-                        />
-                      )}
-                      
-                      {/* Badge overlay if pet has badge */}
-                      {pet.hasBadge && (
-                        <div className="absolute top-3 right-3 bg-green-500 text-white rounded-full p-1 shadow-md">
-                          <Medal className="h-5 w-5" />
-                        </div>
-                      )}
-                      
-                      {/* Image/video count indicator if more than one media item */}
-                      {pet.media.length > 1 && (
-                        <div className="absolute bottom-3 right-3 bg-black bg-opacity-60 text-white rounded-lg px-2 py-1 text-xs font-medium">
-                          +{pet.media.length - 1} {isVideo(pet.media[0].url) ? 'media' : 'photos'}
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="h-full w-full flex flex-col items-center justify-center bg-gray-100">
-                      <PawPrint className="h-12 w-12 text-gray-300 mb-2" />
-                      <span className="text-gray-400 text-sm">No media available</span>
-                    </div>
-                  )}
-                </div>
-                
-                {/* Pet Info with improved styling */}
-                <div className="p-5">
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-xl font-bold text-gray-800 tracking-tight">{pet.breed}</h3>
-                    <div className="flex items-center">
-                      {pet.hasBadge && (
-                        <span className="inline-flex items-center bg-green-50 px-2 py-1 rounded-full text-xs font-medium text-green-700">
-                          <CheckCircle className="h-3 w-3 mr-1" />
-                          Verified
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  
-                  {/* Pet details with icons */}
-                  <div className="space-y-2 mb-4">
-                    <div className="flex items-center text-gray-600">
-                      <Calendar className="h-4 w-4 mr-2 text-indigo-500" />
-                      <span className="text-sm">{pet.age} Years • {pet.gender}</span>
-                    </div>
-                    
-                    <div className="flex items-center text-gray-600">
-                      <MapPin className="h-4 w-4 mr-2 text-indigo-500" />
-                      <span className="text-sm">{pet.location}</span>
-                    </div>
-                    
-               
-                  </div>
-                  
-                  {/* Bottom section with price and action button */}
-                  <div className="flex justify-between items-center pt-3 border-t border-gray-100">
-                    <p className="text-xl font-bold text-indigo-600">₹{pet.cost}</p>
-                    <Link href={`/pets/${pet.id}`} className="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
-                      View Details
-                    </Link>
-                  </div>
-                </div>
-              </div>
+              <Link href={`/pets/${pet.id}`} className="block">
+  <div key={pet.id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+    {/* Pet Image */}
+    <div className="relative h-72 w-full overflow-hidden rounded-lg">
+      {pet.media && pet.media.length > 0 ? (
+        <div className="relative h-full w-full">
+          {isVideo(pet.media[0].url) ? (
+            <div className="relative h-full w-full">
+              <video
+                src={pet.media[0].url}
+                className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
+                autoPlay
+                loop
+                muted={isMuted}
+                playsInline
+              />
+              {/* Audio toggle button */}
+              <button 
+                onClick={(e) => {
+                  e.preventDefault(); // Prevent Link navigation when clicking button
+                  setIsMuted(!isMuted);
+                }}
+                className="absolute bottom-3 left-3 bg-black bg-opacity-60 text-white rounded-full p-2 hover:bg-opacity-80 transition-all"
+                aria-label={isMuted ? "Unmute video" : "Mute video"}
+              >
+                {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+              </button>
+            </div>
+          ) : (
+            <Image
+              src={pet.media[0].url}
+              alt={`${pet.breed}`}
+              fill
+              className="object-cover transition-transform duration-500 hover:scale-105"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              priority
+            />
+          )}
+          {pet.media.length > 1 && (
+            <div className="absolute bottom-3 right-3 bg-black bg-opacity-60 text-white rounded-lg px-2 py-1 text-xs font-medium">
+              +{pet.media.length - 1} {isVideo(pet.media[0].url) ? 'media' : 'photos'}
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="h-full w-full flex flex-col items-center justify-center bg-gray-100">
+          <PawPrint className="h-12 w-12 text-gray-300 mb-2" />
+          <span className="text-gray-400 text-sm">No media available</span>
+        </div>
+      )}
+    </div>
+
+    {/* Pet Info */}
+    <div className="p-5">
+      <div className="flex justify-between items-start mb-2">
+        <h3 className="text-xl font-bold text-gray-800 tracking-tight">{pet.breed}</h3>
+        <div className="flex items-center">
+          {pet.hasBadge && (
+            <span className="inline-flex items-center bg-green-50 px-2 py-1 rounded-full text-xs font-medium text-green-700">
+              <CheckCircle className="h-3 w-3 mr-1" />
+              Verified
+            </span>
+          )}
+        </div>
+      </div>
+
+     <div className="space-y-2 mb-4">
+  {/* Gender */}
+  <div className="flex items-center text-gray-600">
+    <div className="flex justify-center items-center w-4 h-4 mr-2 text-indigo-500 font-bold">
+      {pet.gender === 'male' ? '♂' : '♀'}
+    </div>
+    <span className="text-sm">{pet.gender}</span>
+  </div>
+
+  {/* Age */}
+  <div className="flex items-center text-gray-600">
+    <Calendar className="h-4 w-4 mr-2 text-indigo-500" />
+    <span className="text-sm">{pet.age} Years</span>
+  </div>
+
+  {/* Vaccination Status */}
+  <div className="flex items-center text-gray-600">
+    <ShieldCheck className="h-4 w-4 mr-2 text-indigo-500" />
+    <span className="text-sm">{pet.vaccine === "Yes" ? 'Vaccinated' : 'Not Vaccinated'}</span>
+  </div>
+
+  {/* Location */}
+  <div className="flex items-center text-gray-600">
+    <MapPin className="h-4 w-4 mr-2 text-indigo-500" />
+    <span className="text-sm">{pet.location}</span>
+  </div>
+</div>
+
+
+      <div className="flex justify-between items-center pt-3 border-t border-gray-100">
+        <p className="text-xl font-bold text-indigo-600">₹{pet.cost}</p>
+      </div>
+    </div>
+  </div>
+</Link>
+
+            
             ))}
           </div>
         )}

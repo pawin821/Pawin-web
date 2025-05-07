@@ -14,7 +14,7 @@ export default function RootLayout({ children }) {
               <Toaster position="top-center" />
 
         <PetNavbar />
-        <main>{children}</main>
+        <main className='flex-grow pt-12 md:pt-16 pb-16 md:pb-0'>{children}</main>
       </body>
     </html>
   );

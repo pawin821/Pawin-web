@@ -4,7 +4,8 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Heart, ShoppingBag, Film, Dog, Search, Menu,HeartHandshake, X, Home, Settings, Upload, HeartPlus, FilesIcon } from 'lucide-react';
+import { Heart, ShoppingBag, Film, Dog, Search, Menu, HeartHandshake, X, Home, Settings, 
+         Upload, HeartPlus, FilesIcon, PawPrint, Stethoscope, DollarSign } from 'lucide-react';
 import { UserButton } from '@clerk/nextjs';
 
 export default function PetNavbar() {
@@ -48,26 +49,36 @@ export default function PetNavbar() {
     setSidebarOpen(false);
   };
 
-  // Main navigation items (4 primary ones)
+  // Main navigation items for desktop (6 primary ones)
   const mainNavItems = [
-    { name: 'Buy', icon: <Home className="w-6 h-6" />, href: '/home' },
-    { name: 'Adoption', icon: <Heart className="w-6 h-6" />, href: '/home/adoption' },
-    { name: 'Pet Dating', icon: <Heart className="w-6 h-6" />, href: '/home/pet-dating' },
+    { name: 'Shop', icon: <Home className="w-6 h-6" />, href: '/home' },
+    { name: 'Adoption', icon: <PawPrint className="w-6 h-6" />, href: '/home/adoption' },
+    { name: 'Mate Finder', icon: <Heart className="w-6 h-6" />, href: '/home/pet-dating' },
+    { name: 'Pet Reels', icon: <Film className="w-6 h-6" />, href: '/home/reels' },
+    { name: 'Lost and Found', icon: <Search className="w-6 h-6" />, href: '/home/lost' },
+    { name: 'Vet Consultancy', icon: <Stethoscope className="w-6 h-6" />, href: '/home/vets' },
+  ];
+  
+  // Mobile navigation items (6 items for bottom bar)
+  const mobileNavItems = [
+    { name: 'Shop', icon: <Home className="w-6 h-6" />, href: '/home' },
+    { name: 'Adoption', icon: <PawPrint className="w-6 h-6" />, href: '/home/adoption' },
+    { name: 'Mate', icon: <Heart className="w-6 h-6" />, href: '/home/pet-dating' },
     { name: 'Reels', icon: <Film className="w-6 h-6" />, href: '/home/reels' },
+    { name: 'Lost', icon: <Search className="w-6 h-6" />, href: '/home/lost' },
+    { name: 'Vet', icon: <Stethoscope className="w-6 h-6" />, href: '/home/vets' }
   ];
 
-  // Additional sidebar items - FIXED: Properly formatted with commas and braces
+  // Additional sidebar items with updated names and order
   const sideNavItems = [
-    { name: 'Lost', icon: <Search className="w-6 h-6" />, href: '/home/lost' },
-    { name: 'Selling', icon: <ShoppingBag className="w-6 h-6" />, href: '/home/selling' },
-    { name: 'Vet Listing', icon: <Search className="w-6 h-6" />, href: '/home/vets' },
-        { name: 'Donation', icon: <Heart className="w-6 h-6" />, href: '/home/donation' },
-            { name: 'My Match', icon: <HeartHandshake className="w-6 h-6" />, href: '/home/match' },
-
+    { name: 'List a Pet for Sale', icon: <ShoppingBag className="w-6 h-6" />, href: '/home/selling' },
+    { name: 'List a Pet for Adoption', icon: <HeartPlus className="w-6 h-6" />, href: '/home/upload-ad' },
     { name: 'Upload Reels', icon: <Upload className="w-6 h-6" />, href: '/home/reels-upload' },
-    { name: 'Adoption Upload Form', icon: <HeartPlus className="w-6 h-6" />, href: '/home/upload-ad' },
-    { name: 'Lost Report', icon: <FilesIcon className="w-6 h-6" />, href: '/home/lost-report' },
-    { name: 'My Puppies', icon: <Dog className='w-6 h-6' />, href: '/home/orders' }
+    { name: 'Report a Lost Pet', icon: <FilesIcon className="w-6 h-6" />, href: '/home/lost-report' },
+    { name: 'Support Street Dogs', icon: <DollarSign className="w-6 h-6" />, href: '/home/donation' },
+    { name: 'My Pet Matches', icon: <HeartHandshake className="w-6 h-6" />, href: '/home/match' },
+    { name: 'My Pets', icon: <Dog className='w-6 h-6' />, href: '/home/orders' },
+    { name: 'Settings', icon: <Settings className="w-6 h-6" />, href: '/home/settings' }
   ];
 
   // Check if link is active - more precise matching
@@ -123,9 +134,9 @@ export default function PetNavbar() {
               </Link>
             );
           })}
-          <div className="flex items-center gap-2  px-3 py-1">
+          <div className="flex items-center gap-2 px-3 py-1 mt-4">
             <UserButton afterSignOutUrl="/" />
-            <span className="text-sm font-medium text-gray-700">Settings</span>
+            <span className="text-sm font-medium text-gray-700">Account</span>
           </div>
         </div>
       </div>
@@ -140,13 +151,13 @@ export default function PetNavbar() {
     }}>
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex justify-between items-center h-16">
-          <Link href="/" className="flex items-center">
+          <Link href="/home" className="flex items-center">
             <div className="flex items-center">
               <img src="/logo.png" alt="PetPals Logo" className="h-14 w-auto" />
             </div>
           </Link>
           
-          <div className="hidden md:flex items-center space-x-12">
+          <div className="hidden md:flex items-center space-x-8">
             {mainNavItems.map((item, index) => {
               const active = isActive(item.href);
               return (
@@ -192,48 +203,74 @@ export default function PetNavbar() {
     </nav>
   );
 
-  // Mobile Navigation (Bottom Bar)
+  // Mobile Navigation (Bottom Bar with 6 icons)
   const MobileNav = () => (
     <nav className="fixed bottom-0 left-0 right-0 shadow-lg border-t z-20" style={{ 
       backgroundColor: styles.colors.whiteIvory,
       borderColor: styles.colors.mintGreen,
       fontFamily: styles.fonts.primary
     }}>
-      <div className="flex justify-between items-center h-16 px-6">
-        {mainNavItems.map((item, index) => {
+      <div className="flex justify-between items-center h-16 px-2">
+        {mobileNavItems.map((item, index) => {
           const active = isActive(item.href);
           return (
-            <Link
+            <div
               key={index}
-              href={item.href}
               className="flex flex-col items-center justify-center relative transition-colors duration-150"
               style={{ 
                 color: active ? styles.colors.tealBlue : styles.colors.darkText,
               }}
             >
-              {item.icon}
-              <span className={`text-xs mt-1 ${active ? 'font-semibold' : 'font-medium'}`}>{item.name}</span>
-              {active && (
-                <div 
-                  className="absolute -bottom-3 left-1/4 right-1/4 h-0.5 rounded-full"
-                  style={{ backgroundColor: styles.colors.tealBlue }}
-                />
+              {item.action ? (
+                <button 
+                  onClick={item.action} 
+                  className="flex flex-col items-center justify-center"
+                  aria-label={item.name}
+                >
+                  {item.icon}
+                  <span className="text-xs mt-1 font-medium">{item.name}</span>
+                </button>
+              ) : (
+                <Link href={item.href} className="flex flex-col items-center justify-center">
+                  {item.icon}
+                  <span className={`text-xs mt-1 ${active ? 'font-semibold' : 'font-medium'}`}>{item.name}</span>
+                  {active && (
+                    <div 
+                      className="absolute -bottom-3 left-1/4 right-1/4 h-0.5 rounded-full"
+                      style={{ backgroundColor: styles.colors.tealBlue }}
+                    />
+                  )}
+                </Link>
               )}
-            </Link>
+            </div>
           );
         })}
-        
-        <button
-          onClick={() => setSidebarOpen(true)}
-          className="flex flex-col items-center justify-center transition-colors duration-150"
-          style={{ color: styles.colors.tealBlue }}
-          aria-label="Open menu"
-        >
-          <Menu className="w-6 h-6" />
-          <span className="text-xs mt-1 font-medium">Menu</span>
-        </button>
       </div>
     </nav>
+  );
+
+  // Mobile Header (Top Bar with Logo and Menu - no padding)
+  const MobileHeader = () => (
+    <div className="fixed top-0 left-0 right-0 z-20 shadow-sm" style={{ 
+      backgroundColor: styles.colors.whiteIvory,
+      fontFamily: styles.fonts.primary
+    }}>
+      <div className="flex justify-between items-center h-12 px-2">
+        <Link href="/" className="flex items-center">
+          <img src="/logo.png" alt="PetPals Logo" className="h-8 w-auto" />
+        </Link>
+        <button
+          onClick={() => setSidebarOpen(true)}
+          className="flex items-center justify-center p-1 rounded-full transition-colors duration-150"
+          style={{ 
+            color: styles.colors.tealBlue,
+          }}
+          aria-label="Open menu"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+      </div>
+    </div>
   );
 
   // Overlay when sidebar is open - faster fade transition
@@ -250,7 +287,12 @@ export default function PetNavbar() {
     <>
       {/* Show appropriate navbar based on screen size */}
       {!isMobile && <DesktopNav />}
-      {isMobile && <MobileNav />}
+      {isMobile && (
+        <>
+          <MobileHeader />
+          <MobileNav />
+        </>
+      )}
       
       {/* Sidebar - shown on both mobile and desktop */}
       <Sidebar />
@@ -258,8 +300,7 @@ export default function PetNavbar() {
       {/* Dark overlay when sidebar is open */}
       <Overlay />
       
-      {/* Content spacing - FIXED: Only add padding when needed with no extra spacing */}
-      <div className={isMobile ? "pb-0" : "pt-16"} />
+      {/* Content spacing - this should be applied to the main layout, not here */}
     </>
   );
 }

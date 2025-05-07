@@ -313,6 +313,7 @@ export const getAllVets = async () => {
     const clientLocation = await getClientLocation();
 
     const usersRef = collection(db, 'users');
+
     const vetsQuery = query(
       usersRef,
       where('userType', '==', 'vet'),
@@ -320,8 +321,11 @@ export const getAllVets = async () => {
     );
     const querySnapshot = await getDocs(vetsQuery);
 
+
     const vets = querySnapshot.docs.map((doc) => {
       const data = doc.data();
+console.log(data)
+console.log("wow")
       const distance = getDistanceFromLatLonInKm(
         clientLocation.latitude,
         clientLocation.longitude,

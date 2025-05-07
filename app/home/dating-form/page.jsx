@@ -34,7 +34,7 @@ export default function PetDatingProfileForm() {
   const [paymentComplete, setPaymentComplete] = useState(false);
   
   // Profile creation pricing
-  const PROFILE_COST = 1; // in INR
+  const PROFILE_COST = 59; // in INR
 
   useEffect(() => {
     const fetchUserData = async () => {

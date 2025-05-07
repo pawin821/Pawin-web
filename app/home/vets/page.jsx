@@ -56,8 +56,8 @@ const VetBookingPage = () => {
       
       {vets.length === 0 ? (
         <div className="text-center p-10 bg-gray-50 rounded-xl">
-          <p className="text-lg text-gray-700">No veterinarians are currently available.</p>
-          <p className="text-sm text-gray-500 mt-2">Please check back later or contact support.</p>
+          <p className="text-lg text-gray-700">No veterinarians are currently available location.</p>
+          <p className="text-sm text-red-700 mt-2">Please on the location on your device</p>
         </div>
       ) : (
         <div className="grid md:grid-cols-2 gap-6">
